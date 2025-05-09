@@ -1,0 +1,18 @@
+// NoR의 문법을 정의합니다.
+start: expr+
+
+expr: expr PLUS NUMBER
+    | NUMBER
+NUMBER: /[0-9]+/
+PLUS: "+"
+
+LINE_COMMENT: /\/\/.*/
+BLOCK_COMMENT: /\/\*.*?\*\//s
+
+// 공백을 무시
+%import common.WS
+%ignore WS
+
+// 주석을 무시
+%ignore LINE_COMMENT
+%ignore BLOCK_COMMENT
