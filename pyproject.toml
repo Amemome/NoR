@@ -4,6 +4,4 @@ version = "0.1.0"
 description = "NoR is a Python-based mini-language designed for quickly and easily creating graphs for academic papers."
 readme = "README.md"
 requires-python = ">=3.12"
-dependencies = [
-    "cowsay>=6.1",
-]
+dependencies = []
