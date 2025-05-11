@@ -1,10 +1,16 @@
 // NoR의 문법을 정의합니다.
-start: expr+
+start: statement+
 
-expr: expr PLUS NUMBER
-    | NUMBER
-NUMBER: /[0-9]+/
-PLUS: "+"
+statement: STRING
+
+STRING: DQ_STRING | SQ_STRING
+BOOLEAN: TRUE | FALSE 
+
+TRUE: "true" | "True" | "참"
+FALSE: "false" | "False" | "거짓"
+
+DQ_STRING: /"[^"\\]*(\\.[^"\\]*)*"/
+SQ_STRING: /'[^'\\]*(\\.[^'\\]*)*'/
 
 LINE_COMMENT: /\/\/.*/
 BLOCK_COMMENT: /\/\*.*?\*\//s
