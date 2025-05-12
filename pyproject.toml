@@ -5,5 +5,5 @@ description = "NoR is a Python-based mini-language designed for quickly and easi
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "cowsay>=6.1",
+    "lark>=1.2.2",
 ]
