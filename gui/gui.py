@@ -1,78 +1,81 @@
-# gui/gui.py
+# gui.py
 
 import PySimpleGUI as sg
 import os
+from graph_executor import execute
+from examples import get_example_code
+from state_manager import NorStateManager
 
-sg.theme("DarkGrey13")  # 다크모드 (라이트모드로 바꾸려면 theme 선택만 바꾸면 됨)
+# 상태 관리자 생성
+state = NorStateManager()
 
-layout = [
-    [sg.Text("NoR DSL 입력", font=("NanumGothic", 12))],
-    [sg.Multiline(key="INPUT", size=(70, 20), font=("Courier", 11))],
-    [sg.Button("예제 불러오기"), sg.Button("실행 (⌘+Enter)"), sg.Button("종료")],
-    [
-        sg.Column([
-            [sg.Text("그래프 출력", font=("NanumGothic", 12))],
-            [sg.Image(filename="", key="GRAPH", size=(400, 300))]
-        ]),
-        sg.VSeparator(),
-        sg.Column([
-            [sg.Text("변환된 명령어", font=("NanumGothic", 12))],
-            [sg.Multiline(key="OUTPUT", size=(45, 18), font=("Courier", 10))]
-        ])
+# 초기 테마 설정
+sg.theme(state.theme)
+
+def make_layout():
+    return [
+        [
+            sg.Text("NoR", font=("NanumGothic", 14), pad=(5, 10)),
+            sg.Text(f"파일명: {state.filename}", key="FILENAME", font=("NanumGothic", 10), pad=(5, 10)),
+            sg.Push(),
+            sg.Button("New Pad"),
+            sg.Button("Reset"),
+            sg.Button("Run"),
+            sg.Button("Samples"),
+            sg.Button("🌙 Light/Dark", key="THEME")
+        ],
+        [sg.Text("DSL 입력", font=("NanumGothic", 11))],
+        [sg.Multiline(key="INPUT", size=(70, 20), font=("Courier", 11))],
+        [
+            sg.Column([
+                [sg.Text("그래프 출력", font=("NanumGothic", 11))],
+                [sg.Image(filename="", key="GRAPH", size=(400, 300))]
+            ]),
+            sg.VSeparator(),
+            sg.Column([
+                [sg.Text("명령어 결과 (dict)", font=("NanumGothic", 11))],
+                [sg.Multiline(key="OUTPUT", size=(45, 18), font=("Courier", 10))]
+            ])
+        ]
     ]
 
-]
-
-window = sg.Window("NoR 실행기", layout, finalize=True)
-window.bind("<Command_L>+Return", "실행 (⌘+Enter)")
+# 윈도우 실행
+window = sg.Window("NoR 실행기", make_layout(), finalize=True)
 
 while True:
     event, values = window.read()
     if event in (sg.WINDOW_CLOSED, "종료"):
         break
 
-    elif event == "예제 불러오기":
-        example_code = """데이터는 [
-  ["카테고리", "값"],
-  ["A", 10],
-  ["B", 15],
-  ["C", 7]
-]
-카테고리와 값을 그리기
-그래프종류는 "막대"
-제목은 "범주별 값 비교"
-축이름은 "카테고리", "값"
-저장은 "bar_chart.png"
-"""
-        window["INPUT"].update(example_code)
+    elif event == "New Pad":
+        state.reset()
+        window["INPUT"].update("")
+        window["GRAPH"].update(filename="")
+        window["OUTPUT"].update("")
+        window["FILENAME"].update(f"파일명: {state.filename}")
 
-    elif event == "실행 (⌘+Enter)":
-        # 아직 parser는 없으므로 dict 직접 사용
-        from graph.graph_executor import execute
-        import pandas as pd
+    elif event == "Samples":
+        sample = get_example_code("bar")
+        state.filename = "example_bar_chart.nor"
+        window["INPUT"].update(sample)
+        window["FILENAME"].update(f"파일명: {state.filename}")
+        window["GRAPH"].update(filename="")
+        window["OUTPUT"].update("샘플을 불러왔습니다. Run을 눌러 실행하세요")
 
-        command = {
-            "chart": "bar",
-            "x": "카테고리",
-            "y": ["값"],
-            "data": [
-                ["카테고리", "값"],
-                ["A", 10],
-                ["B", 15],
-                ["C", 7]
-            ],
-            "title": "범주별 값 비교",
-            "xlabel": "카테고리",
-            "ylabel": "값",
-            "save": "bar_chart.png"
-        }
-
+    elif event == "Run":
         try:
-            execute(command)  # 그래프 생성
-            if os.path.exists("bar_chart.png"):
-                window["GRAPH"].update(filename="bar_chart.png")
-            window["OUTPUT"].update(str(command))  # 변환된 명령어 출력
+            command = state.parse_input(values["INPUT"])
+            execute(command)
+            if os.path.exists(command["save"]):
+                window["GRAPH"].update(filename=command["save"])
+            window["OUTPUT"].update(str(command))
         except Exception as e:
-            window["OUTPUT"].update(f"경고: 오류 발생: {str(e)}")
+            window["OUTPUT"].update(f"⚠️ 실행 오류: {str(e)}")
+
+    elif event == "THEME":
+        state.toggle_theme()
+        sg.theme(state.theme)
+        window.close()
+        window = sg.Window("NoR 실행기", make_layout(), finalize=True)
 
 window.close()
