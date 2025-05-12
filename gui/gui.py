@@ -11,6 +11,7 @@ state = NorStateManager()
 sg.theme(state.theme)
 
 def make_layout():
+  theme_icon = "img/icon_light.png" if state.theme == "DarkGrey13" else "img/icon_dark.png"
   """GUI 레이아웃을 생성하는 함수"""
   return [
     [
@@ -21,7 +22,7 @@ def make_layout():
       sg.Button("Reset"),
       sg.Button("Run"),
       sg.Button("Samples"),
-      sg.Button("🌙 Light/Dark", key="THEME")
+      sg.Button("", key="THEME", image_filename=theme_icon, image_size=(24, 24), tooltip="테마 전환", border_width=0)
     ],
     [sg.Text("DSL 입력", font=("NanumGothic", 11))],
     [sg.Multiline(key="INPUT", size=(70, 20), font=("Courier", 11))],
@@ -78,11 +79,31 @@ while True:
       window["OUTPUT"].update(f"⚠️ 실행 오류: {str(e)}")
 
   elif event == "THEME":
-    # 테마 전환 (라이트/다크) 및 전체 창 재생성
+    # 현재 상태 백업
+    input_text = values["INPUT"]
+    output_text = values["OUTPUT"]
+    graph_filename = None
+    if "command" in locals() and isinstance(command, dict):
+        graph_filename = command.get("save")
+
+    # 테마 변경
     state.toggle_theme()
     sg.theme(state.theme)
+
+     # 아이콘 결정
+    theme_icon = "img/icon_light.png" if state.theme == "DarkGrey13" else "img/icon_dark.png"
+
+    # 기존 창 닫고 새 창 열기
     window.close()
     window = sg.Window("NoR 실행기", make_layout(), finalize=True)
+
+    # 상태 복원
+    window["INPUT"].update(input_text)
+    window["OUTPUT"].update(output_text)
+    if graph_filename and os.path.exists(graph_filename):
+        window["GRAPH"].update(filename=graph_filename)
+    window["FILENAME"].update(f"파일명: {state.filename}")
+
 
 # 프로그램 종료 시 윈도우 닫기
 window.close()
