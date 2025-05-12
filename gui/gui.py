@@ -4,34 +4,40 @@ from graph_executor import execute
 from examples import get_example_code
 from state_manager import NorStateManager
 
-# 상태 관리 객체 생성 (테마, 파일명, 입력 내용 등을 관리)
+# 상태 관리 객체 생성
 state = NorStateManager()
 
-# 초기 테마 설정 (다크/라이트 등)
+# 초기 테마 설정
 sg.theme(state.theme)
 
 def make_layout():
   theme_icon = "img/icon_light.png" if state.theme == "DarkGrey13" else "img/icon_dark.png"
-  """GUI 레이아웃을 생성하는 함수"""
   return [
     [
       sg.Text("NoR", font=("NanumGothic", 14), pad=(5, 10)),
       sg.Text(f"파일명: {state.filename}", key="FILENAME", font=("NanumGothic", 10), pad=(5, 10)),
-      sg.Push(),  # 오른쪽 정렬용 공간 채우기
+      sg.Push(),
       sg.Button("New Pad"),
       sg.Button("Reset"),
       sg.Button("Run"),
-      sg.Button("Samples"),
+      sg.Button("Samples", key="TOGGLE_SAMPLES"),
       sg.Button("", key="THEME", image_filename=theme_icon, image_size=(24, 24), tooltip="테마 전환", border_width=0)
     ],
+    [  # 샘플 토글 리스트 (처음엔 숨김)
+      sg.pin(sg.Column([
+        [sg.Button("막대 그래프", key="SAMPLE_BAR")],
+        [sg.Button("선 그래프", key="SAMPLE_LINE")],
+        [sg.Button("산점도", key="SAMPLE_SCATTER")]
+      ], key="SAMPLE_LIST", visible=False, pad=(0, 0)))
+    ],
     [sg.Text("DSL 입력", font=("NanumGothic", 11))],
-    [sg.Multiline(key="INPUT", size=(70, 20), font=("Courier", 11))],
+    [sg.Multiline(key="INPUT", size=(70, 20), font=("Courier", 11), enter_submits=True)],
     [
       sg.Column([
         [sg.Text("그래프 출력", font=("NanumGothic", 11))],
         [sg.Image(filename="", key="GRAPH", size=(400, 300))]
       ]),
-      sg.VSeparator(),  # 수직 구분선
+      sg.VSeparator(),
       sg.Column([
         [sg.Text("명령어 결과 (dict)", font=("NanumGothic", 11))],
         [sg.Multiline(key="OUTPUT", size=(45, 18), font=("Courier", 10))]
@@ -39,71 +45,75 @@ def make_layout():
     ]
   ]
 
-# 메인 윈도우 생성 및 초기화
-window = sg.Window("NoR 실행기", make_layout(), finalize=True)
+# 메인 윈도우 생성
+window = sg.Window("NoR 실행기", make_layout(), finalize=True, return_keyboard_events=True)
 
-# 이벤트 루프 시작
 while True:
   event, values = window.read()
+
+  # 단축키 처리
+  if event in ("Control-Return", "Command-Return"):
+    event = "Run"
+
   if event in (sg.WINDOW_CLOSED, "종료"):
-    # 창 닫기 또는 종료 버튼 클릭 시 루프 탈출
     break
 
   elif event == "New Pad":
-    # 새 입력창 초기화: 상태 초기화, 모든 필드 클리어
     state.reset()
     window["INPUT"].update("")
     window["GRAPH"].update(filename="")
     window["OUTPUT"].update("")
     window["FILENAME"].update(f"파일명: {state.filename}")
 
-  elif event == "Samples":
-    # 샘플 코드 불러오기 ("bar" 예제)
-    sample = get_example_code("bar")
-    state.filename = "example_bar_chart.nor"
+  elif event == "TOGGLE_SAMPLES":
+    # 리스트 토글
+    current = window["SAMPLE_LIST"].visible
+    window["SAMPLE_LIST"].update(visible=not current)
+
+  elif event.startswith("SAMPLE_"):
+    sample_map = {
+      "SAMPLE_BAR": "bar",
+      "SAMPLE_LINE": "line",
+      "SAMPLE_SCATTER": "scatter"
+    }
+    sample_type = sample_map[event]
+    sample = get_example_code(sample_type)
+    state.filename = f"example_{sample_type}_chart.nor"
     window["INPUT"].update(sample)
     window["FILENAME"].update(f"파일명: {state.filename}")
     window["GRAPH"].update(filename="")
-    window["OUTPUT"].update("샘플을 불러왔습니다. Run을 눌러 실행하세요")
+    window["OUTPUT"].update(f"{sample_type} 샘플을 불러왔습니다. Run을 눌러 실행하세요")
+    # 샘플 목록 자동 숨기기
+    window["SAMPLE_LIST"].update(visible=False)
 
   elif event == "Run":
-    # 현재 입력된 DSL 코드를 실행하고 결과 반영
     try:
-      command = state.parse_input(values["INPUT"])  # 입력 파싱
-      execute(command)  # 그래프 실행
-      if os.path.exists(command["save"]):  # 저장된 이미지가 존재하면 갱신
+      command = state.parse_input(values["INPUT"])
+      execute(command)
+      if os.path.exists(command["save"]):
         window["GRAPH"].update(filename=command["save"])
-      window["OUTPUT"].update(str(command))  # 명령어 dict 출력
+      window["OUTPUT"].update(str(command))
     except Exception as e:
-      # 실행 중 예외 발생 시 오류 메시지 출력
       window["OUTPUT"].update(f"⚠️ 실행 오류: {str(e)}")
 
   elif event == "THEME":
-    # 현재 상태 백업
     input_text = values["INPUT"]
     output_text = values["OUTPUT"]
     graph_filename = None
     if "command" in locals() and isinstance(command, dict):
         graph_filename = command.get("save")
 
-    # 테마 변경
     state.toggle_theme()
     sg.theme(state.theme)
 
-     # 아이콘 결정
     theme_icon = "img/icon_light.png" if state.theme == "DarkGrey13" else "img/icon_dark.png"
-
-    # 기존 창 닫고 새 창 열기
     window.close()
-    window = sg.Window("NoR 실행기", make_layout(), finalize=True)
+    window = sg.Window("NoR 실행기", make_layout(), finalize=True, return_keyboard_events=True)
 
-    # 상태 복원
     window["INPUT"].update(input_text)
     window["OUTPUT"].update(output_text)
     if graph_filename and os.path.exists(graph_filename):
         window["GRAPH"].update(filename=graph_filename)
     window["FILENAME"].update(f"파일명: {state.filename}")
 
-
-# 프로그램 종료 시 윈도우 닫기
 window.close()
