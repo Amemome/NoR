@@ -1,0 +1,83 @@
+// NoR의 문법을 정의합니다.
+start: statement+
+
+statement: STRING | graph_property_statement | io_statement | create_graph_statement | DRAW_KEYWORD
+
+
+graph_property_statement: set_title_statement
+                        | set_labels_statement
+                        | set_type_statement
+                        | set_legend_statement   // 범례 설정 추가
+                        | set_color_statement
+                        | set_font_statement     // 폰트 설정 추가
+                        | set_size_statement     // 그래프 크기 설정 추가
+
+io_statement: load_command 
+            | save_command
+
+load_command: LOAD_KEYWORD STRING
+save_command: SAVE_KEYWORD STRING
+
+create_graph_statement: CREATE_GRAPH_KEYWORD STRING
+
+set_title_statement: SET_TITLE_KEYWORD STRING
+set_labels_statement: SET_LABELS_KEYWORD STRING
+set_type_statement: SET_TYPE_KEYWORD STRING
+set_legend_statement: SET_LEGEND_KEYWORD STRING
+set_color_statement: SET_COLOR_KEYWORD STRING
+set_font_statement: SET_FONT_KEYWORD STRING
+set_size_statement: SET_SIZE_KEYWORD STRING
+
+// 키워드 정의
+CREATE_GRAPH_KEYWORD: "그래프생성"
+
+LOAD_KEYWORD: "로드" | "불러오기" | "가져오기" | "load" | "ld" | "open"
+SAVE_KEYWORD: "세이브" | "저장하기" | "저장" | "save" | "sv"
+SET_TITLE_KEYWORD: "제목" | "타이틀" | "title"
+SET_LABELS_KEYWORD: "축이름" | "레이블" | "labels"
+X_LABEL_KEYWORD: "x축" | "엑스축" | "xlabel"
+Y_LABEL_KEYWORD: "y축" | "와이축" | "ylabel"
+BOTH_LABELS_KEYWORD: "축들" // 예: 축들 "시간" "값" (x, y 순서)
+SET_TYPE_KEYWORD: "종류" | "타입" | "type" | "유형"
+SET_LEGEND_KEYWORD: "범례" | "legend"
+VISIBLE_KEYWORD: "보이기" | "표시" | "show" | "on"
+INVISIBLE_KEYWORD: "숨기기" | "미표시" | "hide" | "off"
+POSITION_KEYWORD: "위치" | "pos" | "position"
+SET_COLOR_KEYWORD: "색" | "색상" | "색깔" | "color" | "colour"
+SIZE_KEYWORD: "크기" | "size" // 폰트 크기 또는 그래프 크기 등에 사용될 수 있음
+SET_SIZE_KEYWORD: "크기설정" | "그래프크기" | "figsize" // 그래프 전체 크기 설정
+SET_FONT_KEYWORD: "글꼴" | "폰트" | "font"
+
+DRAW_KEYWORD: "그리기" | "draw"
+
+// 기본 자료형
+atom: NUMBER | STRING
+element: atom
+elements: element ("," element)*
+
+vector : empty_vector | non_empty_vector
+
+empty_vector: "[" "]"
+non_empty_vector: "[" elements "]"
+
+STRING: DQ_STRING | SQ_STRING
+BOOLEAN: TRUE | FALSE 
+
+TRUE: "true" | "True" | "참"
+FALSE: "false" | "False" | "거짓"
+
+// 쌍따옴표 문자열과 따옴표 문자열.
+DQ_STRING: /"[^"\\]*(\\.[^"\\]*)*"/
+SQ_STRING: /'[^'\\]*(\\.[^'\\]*)*'/
+
+LINE_COMMENT: /\/\/.*/
+BLOCK_COMMENT: /\/\*.*?\*\//s
+
+// 공백을 무시
+%import common.WS
+%import common.SIGNED_NUMBER -> NUMBER
+%ignore WS
+
+// 주석을 무시
+%ignore LINE_COMMENT
+%ignore BLOCK_COMMENT
