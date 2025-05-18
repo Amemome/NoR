@@ -15,7 +15,6 @@ statement: property_assignment_statement
         | data_statement
         | create_graph_statement 
         | draw_statement
-        | axis_setting_statement
 
 // 속성 지정 문법 ("객체의 속성은 값이다" 또는 "속성은 값이다")
 // 예: 마커의 색은 "빨강"
@@ -48,10 +47,6 @@ create_graph_statement: CREATE_GRAPH_KEYWORD STRING
 // 그래프를 그리는 문장
 draw_statement: DRAW_KEYWORD
 
-// 축 설정 문법 추가
-axis_setting_statement: x_axis_setting | y_axis_setting
-x_axis_setting: X_AXIS_KEYWORD assign_operator STRING
-y_axis_setting: Y_AXIS_KEYWORD assign_operator STRING
 
 // ======================================================================
 // Complex Property Assignment Statement (여러 속성을 한번에 정의 가능한 복합 문장)
