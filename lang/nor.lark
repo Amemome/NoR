@@ -1,5 +1,6 @@
 // NoR의 문법을 정의합니다.
 
+
 // ======================================================================
 // Start Rule (시작 규칙)
 // ======================================================================
@@ -32,11 +33,13 @@ object_selector: GRAPH_KEYWORD     // "그래프의 배경색은 ..."
                | LINE_KEYWORD      // "선의 스타일은 ..."
 
 // io 관련된 문장
+
 io_statement: load_command 
             | save_command
 
 load_command: LOAD_KEYWORD STRING
 save_command: SAVE_KEYWORD STRING
+
 
 // 데이터 관련 문장
 data_statement: DATA_KEYWORD assign_operator vector
@@ -137,6 +140,7 @@ FALSE: "false" | "False" | "거짓"
 DQ_STRING: /"[^"\\]*(\\.[^"\\]*)*"/
 SQ_STRING: /'[^'\\]*(\\.[^'\\]*)*'/
 
+
 // ======================================================================
 // Comments and Whitespace (주석 및 공백 처리)
 // ======================================================================
@@ -147,6 +151,8 @@ BLOCK_COMMENT: /\/\*.*?\*\//s
 %import common.WS
 %import common.SIGNED_NUMBER -> NUMBER
 %ignore WS
+
+// 주석을 무시
 
 %ignore LINE_COMMENT
 %ignore BLOCK_COMMENT

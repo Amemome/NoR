@@ -8,8 +8,6 @@ with open(grammar_file_path, 'r', encoding='utf-8') as f:
 
 parser = Lark(grammar)
 
-
-
 tree = parser.parse("""
                     그래프생성 "예시그래프"
                     제목은 "example"
