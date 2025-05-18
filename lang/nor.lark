@@ -30,19 +30,18 @@ LOAD_KEYWORD: "로드" | "불러오기" | "가져오기" | "load" | "ld" | "open
 SAVE_KEYWORD: "세이브" | "저장하기" | "저장" | "save" | "sv"
 DATA_KEYWORD: "데이터"
 SET_TITLE_KEYWORD: "제목" | "타이틀" | "title"
-// SET_LABELS_KEYWORD: "축이름" | "레이블" | "labels"
+SET_LABELS_KEYWORD: "축이름" | "레이블" | "labels" 
 X_LABEL_KEYWORD: "x축" | "엑스축" | "xlabel"
 Y_LABEL_KEYWORD: "y축" | "와이축" | "ylabel"
-// BOTH_LABELS_KEYWORD: "축들" // 예: 축들 "시간" "값" (x, y 순서)
 SET_TYPE_KEYWORD: "종류" | "타입" | "type" | "유형"
-// SET_LEGEND_KEYWORD: "범례" | "legend"
-// VISIBLE_KEYWORD: "보이기" | "표시" | "show" | "on"
-// INVISIBLE_KEYWORD: "숨기기" | "미표시" | "hide" | "off"
-// POSITION_KEYWORD: "위치" | "pos" | "position"
-// SET_COLOR_KEYWORD: "색" | "색상" | "색깔" | "color" | "colour"
-// SIZE_KEYWORD: "크기" | "size" // 폰트 크기 또는 그래프 크기 등에 사용될 수 있음
-// SET_SIZE_KEYWORD: "크기설정" | "그래프크기" | "figsize" // 그래프 전체 크기 설정
-// SET_FONT_KEYWORD: "글꼴" | "폰트" | "font"
+SET_LEGEND_KEYWORD: "범례" | "legend"
+POSITION_KEYWORD: "위치" | "pos" | "position" // 범레의 위치. 
+SET_COLOR_KEYWORD: "색" | "색상" | "색깔" | "color" | "colour"
+SIZE_KEYWORD: "크기" | "size" // 폰트 크기 또는 그래프 크기 등에 사용될 수 있음
+SET_SIZE_KEYWORD: "크기설정" | "그래프크기" | "figsize" // 그래프 전체 크기 설정
+SET_FONT_KEYWORD: "글꼴" | "폰트" | "font"
+SET_RATIO: "비율" | "그래프비율"
+SET_THICKNESS: "굵기" | "선굵기"
 
 DRAW_KEYWORD: "그리기" | "draw" | "그려줘"
 
