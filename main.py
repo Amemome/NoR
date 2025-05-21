@@ -1,6 +1,4 @@
 def main():
-    import cowsay
-    cowsay.cow("HI")
     print("Hello from nor!")
 
 
