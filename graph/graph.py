@@ -14,12 +14,16 @@ class graph:
             '산점도그래프': self.draw_scatter
         }
 
+        if 종류 not in 함수매핑:
+            raise ValueError(f"알 수 없는 그래프 종류: {종류}")
+
         함수매핑[종류](command)
 
     def draw_line(self, command: dict):
         x = command.get('x')
         y = command.get('y')
         option = command.get('옵션', {})
+
         출력옵션 = option.get('출력', {})
     
         plt.figure(
@@ -46,7 +50,7 @@ class graph:
 
         plt.plot(x, y, **plot_option)
 
-        if 'label' in option:
+        if 'label' in option
             plt.legend(loc=출력옵션.get('범례 위치', 'best'))
         if '제목' in option:
             plt.title(option['제목'])
@@ -61,7 +65,7 @@ class graph:
             plt.savefig(출력옵션['파일로 저장'])
         else:
             plt.show()
-
+            
     def draw_bar(self, command: dict):
         x = command.get('x')
         y = command.get('y')
@@ -89,8 +93,8 @@ class graph:
         if 'label' in option:
             plot_option['label'] = option['label']
     
-
         plt.bar(x, y, **plot_option)
+      
         if 'label' in option:
             plt.legend(loc=출력옵션.get('범례 위치', 'best'))
         if '제목' in option:
