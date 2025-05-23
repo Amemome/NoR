@@ -1,15 +1,6 @@
 from lark import Visitor, Tree, Token
 from nor_config import VALIDATION_RULES
-
-class CompileError(Exception):
-    def __init__(self, message, token=None):
-        if token:
-            line = getattr(token, 'line', '?')
-            column = getattr(token, 'column', '?')
-            super().__init__(f"컴파일 오류 ({line}번 줄 , {column}번 열): {message}")
-        else:
-            super().__init__(f"컴파일 오류: {message}")
-        self.token = token
+from error import CompileError
 
 class SemanticAnalyzer(Visitor):
     def __init__(self):
@@ -22,9 +13,12 @@ class SemanticAnalyzer(Visitor):
 
         self.VALIDATION_RULES = VALIDATION_RULES
     
-    def _add_error(self, message, token=None):
-        # 에러를 즉시 발생
-        raise CompileError(message, token)
+    def _add_error(self, token, message):
+        print(token)
+        line = getattr(token, 'line', '?')
+        column = getattr(token, 'column', '?')
+
+        self.errors.append(CompileError(line, column, message)) 
     
     def _get_element_type(self, element_node):
         """element에 대해서 어떤 타입인지 반환하는 함수."""
