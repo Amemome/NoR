@@ -52,7 +52,7 @@ draw_statement: DRAW_KEYWORD
 // ======================================================================
 // Complex Property Assignment Statement (여러 속성을 한번에 정의 가능한 복합 문장)
 // ======================================================================
-set_axis_labels_statement: SET_LABELS_KEYWORD STRING STRING
+set_axis_labels_statement: SET_LABELS_KEYWORD assign_operator STRING STRING
 
 
 // ======================================================================
