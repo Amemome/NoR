@@ -1,6 +1,15 @@
 from lark import Visitor, Tree, Token
-from nor_config import VALIDATION_RULES
-from error import CompileError
+from nor_config import VALID_PROPERTY_VALUES, OBJECT_SPECIFIC_VALID_PROPERTY_VALUES
+
+class CompileError(Exception):
+    def __init__(self, message, token=None):
+        if token:
+            line = getattr(token, 'line', '?')
+            column = getattr(token, 'column', '?')
+            super().__init__(f"컴파일 오류 ({line}번 줄 , {column}번 열): {message}")
+        else:
+            super().__init__(f"컴파일 오류: {message}")
+        self.token = token
 
 class SemanticAnalyzer(Visitor):
     def __init__(self):
@@ -11,13 +20,12 @@ class SemanticAnalyzer(Visitor):
         self.graph_context = [] # 생성된 그래프들을 나타낸다. 현재 그래프는 [-1]위치의 그래프이다.
         self.errors = [] # 오류들을 수집하기 위한 리스트
 
-        self.VALIDATION_RULES = VALIDATION_RULES
+        self.VALID_PROPERTY_VALUES = VALID_PROPERTY_VALUES
+        self.OBJECT_SPECIFIC_VALID_PROPERTY_VALUES = OBJECT_SPECIFIC_VALID_PROPERTY_VALUES
     
-    def _add_error(self, token, message):
-        line = getattr(token, 'line', '?')
-        column = getattr(token, 'column', '?')
-
-        self.errors.append(CompileError(line, column, message)) 
+    def _add_error(self, message, token=None):
+        # 에러를 즉시 발생
+        raise CompileError(message, token)
     
     def _get_element_type(self, element_node):
         """element에 대해서 어떤 타입인지 반환하는 함수."""
@@ -49,7 +57,6 @@ class SemanticAnalyzer(Visitor):
 
         first_element_type = None           # 벡터의 첫 번째 요소 타입 저장
         first_element_token_for_error = None  # 첫 번째 요소의 위치 정보 (에러 메시지용)
-        
         for i, element_node in enumerate(element_nodes):
             current_element_type = self._get_element_type(element_node)
             
