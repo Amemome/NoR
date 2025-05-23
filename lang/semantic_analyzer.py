@@ -1,5 +1,5 @@
 from lark import Visitor, Tree, Token
-from nor_config import VALID_PROPERTY_VALUES, OBJECT_SPECIFIC_VALID_PROPERTY_VALUES
+from nor_config import VALIDATE_RULES
 
 class CompileError(Exception):
     def __init__(self, message, token=None):
@@ -20,8 +20,7 @@ class SemanticAnalyzer(Visitor):
         self.graph_context = [] # 생성된 그래프들을 나타낸다. 현재 그래프는 [-1]위치의 그래프이다.
         self.errors = [] # 오류들을 수집하기 위한 리스트
 
-        self.VALID_PROPERTY_VALUES = VALID_PROPERTY_VALUES
-        self.OBJECT_SPECIFIC_VALID_PROPERTY_VALUES = OBJECT_SPECIFIC_VALID_PROPERTY_VALUES
+        self.VALIDATE_RULES = VALIDATE_RULES
     
     def _add_error(self, message, token=None):
         # 에러를 즉시 발생
@@ -100,12 +99,65 @@ class SemanticAnalyzer(Visitor):
                 self.errors.append(error_msg)
                 break 
 
+    # statement: (object_selector access_operator)? property_key assign_operator STRING 
+    def property_assignment_statement(self, tree: Tree):
+        """속성 할당문에 대한 유효성 검사를 행한다."""
+    
+        object_selector_node = None
+        property_key_node = None
+        string_value_token = None
         
-        # super().visit_children(tree) # 다른 자식 노드 방문 계속
+        # 토큰 추출
 
-    # 다른 statement 타입들에 대한 방문자 메소드는 필요에 따라 추가할 수 있습니다.
-    # 예를 들어, set_axis_labels_statement의 문자열 값도 검사하고 싶다면:
-    # def set_axis_labels_statement(self, tree):
-    #     # ... 구현 ...
-    #     super().visit_children(tree)
-    #     pass
+        children_iter = iter(tree.children)
+        
+        child1 = next(children_iter, None)
+        if child1 and isinstance(child1, Tree) and child1.data == 'object_selector':
+            object_selector_node = child1
+            next(children_iter, None) # access_operator 건너뛰기
+            property_key_node = next(children_iter, None)
+
+        elif child1 and isinstance(child1, Tree) and child1.data == 'property_key':
+            property_key_node = child1
+        
+        # 남은 자식들 중에서 STRING 찾기 (assign_operator 다음)
+        for child in children_iter: 
+            if isinstance(child, Token) and child.type == 'STRING':
+                string_value_token = child
+                break
+
+        # 정보 추출
+        prop_name_token = property_key_node.children[0] # 실제 속성 키워드 토큰 (예: '종류', '색')
+        prop_name_type = prop_name_token.type      # EBNF 터미널 타입 (예: 'SET_TYPE_KEYWORD')
+        assigned_value_str = string_value_token.value.strip("'\"")
+
+        current_object_type = "GRAPH_KEYWORD" # object 생략하면 기본은 그래프
+        if object_selector_node:
+            current_object_type = object_selector_node.children[0].type # 예: "MARKER_KEYWORD"
+
+        valid_values_for_prop = None
+
+        if current_object_type in self.VALIDATION_RULES:
+            object_rules = self.VALIDATION_RULES[current_object_type]
+            if prop_name_type in object_rules:
+                valid_values_for_prop = object_rules[prop_name_type]
+            else:
+                # 객체(current_object_type)에 해당 속성(prop_name_type) 규칙이 정의되지 않음
+                self.errors.append(f"컴파일 에러: {current_object_type}의 속성에 {prop_name_type}이 없습니다.")
+        else:
+            # 객체(current_object_type)에 대한 규칙 자체가 없음
+            self.errors.append(f"컴파일 에러: {current_object_type}이라는 속성이 없습니다.")
+
+        if valid_values_for_prop is None:
+            pass # 규칙이 None이면 모든 값을 허용
+
+        elif isinstance(valid_values_for_prop, set): # 유효 값이 문자열 set으로 정의된 경우
+            if assigned_value_str not in valid_values_for_prop:
+                error_msg = (
+                    f"Semantic Error (Line {string_value_token.line}, Col {string_value_token.column}): "
+                    f"Invalid value '{assigned_value_str}' for property '{prop_name_token.value}'"
+                    f" of object '{object_selector_node.children[0].value if object_selector_node else 'graph'}'. "
+                    f"Allowed values are: {', '.join(sorted(list(valid_values_for_prop)))}."
+                )
+                self.errors.append(error_msg)
+            pass
