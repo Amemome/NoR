@@ -17,7 +17,7 @@ LEGEND_POSITIONS = {
     "center left", "center right", "lower center", "upper center", "center"
 }
 
-VALIDATE_RULES = {
+VALIDATION_RULES = {
     "GRAPH_KEYWORD": {
         "SET_TYPE_KEYWORD": GRAPH_TYPES,
         "SET_TITLE_KEYWORD": None,

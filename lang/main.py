@@ -1,5 +1,6 @@
 from lark import Lark
 from lark.exceptions import LarkError, UnexpectedToken, UnexpectedCharacters, UnexpectedEOF
+from semantic_analyzer import SemanticAnalyzer;
 
 grammar_file_path = 'nor.lark'
 grammar = None
@@ -12,14 +13,26 @@ parser = Lark(grammar)
 parse_tree = None
 
 script = """
-        그래프생성 "하이"
-        그려줘
-        //this is line comment
-        데이터는 [1,2,3,4]
+    // 에러 있는 코드
+    데이터는 [1, 2, 3, 4, 5, "1"]
+    그래프의 종류는 "선그래프"
+    마커의 색은 "빨강"
+    선의 종류는 "-"
+    제목은 "월별 판매량"
         """
 try:
     parse_tree = parser.parse(script)
     print(parse_tree.pretty())
+    analyzer = SemanticAnalyzer()
+    analyzer.visit(parse_tree)
+
+    if analyzer.errors:
+        print("\nSemantic Errors Found:")
+        for error in analyzer.errors:
+            print(f"- {error}")
+    else:
+        print("\nNo semantic errors found.")
+
     
 except UnexpectedCharacters as err:
     print(f"파싱 오류 {UnexpectedCharacters}: 행 {err.line}, 열 {err.column}, 토큰 '{err.token}'")

@@ -1,5 +1,5 @@
 from lark import Visitor, Tree, Token
-from nor_config import VALIDATE_RULES
+from nor_config import VALIDATION_RULES
 
 class CompileError(Exception):
     def __init__(self, message, token=None):
@@ -20,7 +20,7 @@ class SemanticAnalyzer(Visitor):
         self.graph_context = [] # 생성된 그래프들을 나타낸다. 현재 그래프는 [-1]위치의 그래프이다.
         self.errors = [] # 오류들을 수집하기 위한 리스트
 
-        self.VALIDATE_RULES = VALIDATE_RULES
+        self.VALIDATION_RULES = VALIDATION_RULES
     
     def _add_error(self, message, token=None):
         # 에러를 즉시 발생
@@ -93,7 +93,7 @@ class SemanticAnalyzer(Visitor):
                     f"컴파일 에러 (Line {line}, Col {column}): "
                     f"벡터의 내부 요소들의 일관성이 없습니다. "
                     f"'{first_element_type}' 타입을 예상했지만  ({getattr(first_element_token_for_error, 'line', '?')}), "
-                    f"'{current_element_type}' 타입이 왔습니다 ."
+                    f"'{current_element_type}' 타입이 왔습니다."
                 )
                 # 타입 불일치 발견. 에러에 추가하고. 검사중단.
                 self.errors.append(error_msg)
