@@ -1,15 +1,6 @@
 from lark import Visitor, Tree, Token
 from nor_config import VALIDATION_RULES
-
-class CompileError(Exception):
-    def __init__(self, message, token=None):
-        if token:
-            line = getattr(token, 'line', '?')
-            column = getattr(token, 'column', '?')
-            super().__init__(f"컴파일 오류 ({line}번 줄 , {column}번 열): {message}")
-        else:
-            super().__init__(f"컴파일 오류: {message}")
-        self.token = token
+from error import CompileError
 
 class SemanticAnalyzer(Visitor):
     def __init__(self):
@@ -22,9 +13,12 @@ class SemanticAnalyzer(Visitor):
 
         self.VALIDATION_RULES = VALIDATION_RULES
     
-    def _add_error(self, message, token=None):
-        # 에러를 즉시 발생
-        raise CompileError(message, token)
+    def _add_error(self, token, message):
+        print(token)
+        line = getattr(token, 'line', '?')
+        column = getattr(token, 'column', '?')
+
+        self.errors.append(CompileError(line, column, message)) 
     
     def _get_element_type(self, element_node):
         """element에 대해서 어떤 타입인지 반환하는 함수."""
@@ -63,40 +57,34 @@ class SemanticAnalyzer(Visitor):
             # 위치 정보를 위해 첫 번째 atom/vector 토큰을 찾습니다.
             # element -> atom -> TOKEN 또는 element -> vector
             actual_value_node = element_node.children[0] # atom 또는 vector Tree
-            token_for_error = actual_value_node.children[0] if actual_value_node.children else actual_value_node
+            error_token = actual_value_node.children[0] if actual_value_node.children else actual_value_node
+            
             # token_for_loc은 NUMBER/STRING Token이거나 elements Tree(vector의 경우)
 
             if i == 0:
                 first_element_type = current_element_type
-                first_element_token_for_error = token_for_error
+                first_element_token_for_error = error_token
 
             elif current_element_type != first_element_type:
                 # 에러 위치는 현재 요소의 시작 부분으로 잡습니다.
-                line = getattr(token_for_error, 'line', '?')
-                column = getattr(token_for_error, 'column', '?')
                 
                 # 만약 token_for_loc이 Tree (e.g. elements)면, 그 첫 번째 토큰에서 line/col 가져오기 시도
-                if isinstance(token_for_error, Tree) and token_for_error.children:
-                    error_token = token_for_error.children[0]
+                if isinstance(error_token, Tree) and error_token.children:
+                    error_token = error_token.children[0]
                     if isinstance(error_token, Tree) and error_token.children: # element -> atom -> TOKEN
                         error_token = error_token.children[0] # element
                         if isinstance(error_token, Tree) and error_token.children:
                             error_token = error_token.children[0] # atom
                             if isinstance(error_token, Tree) and error_token.children:
                                 error_token = error_token.children[0] # NUMBER/STRING
-
-                    # 최종적으로 찾은 error_token 값.
-                    line = getattr(error_token, 'line', line)
-                    column = getattr(error_token, 'column', column)
                 
                 error_msg = (
-                    f"컴파일 에러 (Line {line}, Col {column}): "
                     f"벡터의 내부 요소들의 일관성이 없습니다. "
                     f"'{first_element_type}' 타입을 예상했지만  ({getattr(first_element_token_for_error, 'line', '?')}), "
-                    f"'{current_element_type}' 타입이 왔습니다."
+                    f"'{current_element_type}' 타입이 발견되었습니다."
                 )
                 # 타입 불일치 발견. 에러에 추가하고. 검사중단.
-                self.errors.append(error_msg)
+                self._add_error(error_token, error_msg)
                 break 
 
     # statement: (object_selector access_operator)? property_key assign_operator STRING 
@@ -142,11 +130,12 @@ class SemanticAnalyzer(Visitor):
             if prop_name_type in object_rules:
                 valid_values_for_prop = object_rules[prop_name_type]
             else:
-                # 객체(current_object_type)에 해당 속성(prop_name_type) 규칙이 정의되지 않음
-                self.errors.append(f"컴파일 에러: {current_object_type}의 속성에 {prop_name_type}이 없습니다.")
+                # 객체(current_object_type)에 해당 속성(prop_name_type) 규칙이 정의되지 않는 경우
+                self._add_error(prop_name_token, f"{current_object_type}의 속성에 {prop_name_type}이라는 속성이 존재하지 않습니다.")
         else:
-            # 객체(current_object_type)에 대한 규칙 자체가 없음
-            self.errors.append(f"컴파일 에러: {current_object_type}이라는 속성이 없습니다.")
+            # 객체(current_object_type)에 대한 규칙 자체가 없는 경우
+            error_token = current_object_type if current_object_type else prop_name_token
+            self._add_error(error_token, f"{current_object_type}이라는 속성이 존재하지 않습니다.")
 
         if valid_values_for_prop is None:
             pass # 규칙이 None이면 모든 값을 허용
