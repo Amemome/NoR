@@ -1,7 +1,7 @@
 class Error():
     def __init__(self, line, column):
-        self.line = 0
-        self.column = 0
+        self.line = line
+        self.column = column
 
     def __str__(self):
         return f"에러 ({self.line}번째 줄 {self.column}번째): "

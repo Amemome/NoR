@@ -14,7 +14,6 @@ class SemanticAnalyzer(Visitor):
         self.VALIDATION_RULES = VALIDATION_RULES
     
     def _add_error(self, token, message):
-        print(token)
         line = getattr(token, 'line', '?')
         column = getattr(token, 'column', '?')
 
@@ -50,14 +49,14 @@ class SemanticAnalyzer(Visitor):
 
         first_element_type = None           # 벡터의 첫 번째 요소 타입 저장
         first_element_token_for_error = None  # 첫 번째 요소의 위치 정보 (에러 메시지용)
-
+        
         for i, element_node in enumerate(element_nodes):
             current_element_type = self._get_element_type(element_node)
             
             # 위치 정보를 위해 첫 번째 atom/vector 토큰을 찾습니다.
             # element -> atom -> TOKEN 또는 element -> vector
-            actual_value_node = element_node.children[0] # atom 또는 vector Tree
-            error_token = actual_value_node.children[0] if actual_value_node.children else actual_value_node
+            actual_value_node = element_node.children[0]
+            error_token = actual_value_node.children[0] if actual_value_node.children and isinstance(actual_value_node.children[0], Token) else actual_value_node
             
             # token_for_loc은 NUMBER/STRING Token이거나 elements Tree(vector의 경우)
 
@@ -67,24 +66,26 @@ class SemanticAnalyzer(Visitor):
 
             elif current_element_type != first_element_type:
                 # 에러 위치는 현재 요소의 시작 부분으로 잡습니다.
+                token_for_report = error_token
                 
                 # 만약 token_for_loc이 Tree (e.g. elements)면, 그 첫 번째 토큰에서 line/col 가져오기 시도
-                if isinstance(error_token, Tree) and error_token.children:
-                    error_token = error_token.children[0]
-                    if isinstance(error_token, Tree) and error_token.children: # element -> atom -> TOKEN
-                        error_token = error_token.children[0] # element
-                        if isinstance(error_token, Tree) and error_token.children:
-                            error_token = error_token.children[0] # atom
-                            if isinstance(error_token, Tree) and error_token.children:
-                                error_token = error_token.children[0] # NUMBER/STRING
-                
+                final_error_token = token_for_report
+                if isinstance(final_error_token, Tree) and final_error_token.children:
+                    temp_token = final_error_token.children[0]
+                    if isinstance(temp_token, Tree) and temp_token.children: # element -> atom -> TOKEN
+                        temp_token = temp_token.children[0] # element
+                        if isinstance(temp_token, Tree) and temp_token.children:
+                            temp_token = temp_token.children[0] # atom
+                            if isinstance(temp_token, Tree) and error_token.children:
+                                temp_token = temp_token.children[0] # NUMBER/STRING
+                    final_error_token = temp_token
                 error_msg = (
                     f"벡터의 내부 요소들의 일관성이 없습니다. "
                     f"'{first_element_type}' 타입을 예상했지만  ({getattr(first_element_token_for_error, 'line', '?')}), "
                     f"'{current_element_type}' 타입이 발견되었습니다."
                 )
                 # 타입 불일치 발견. 에러에 추가하고. 검사중단.
-                self._add_error(error_token, error_msg)
+                self._add_error(final_error_token, error_msg)
                 break 
 
     # statement: (object_selector access_operator)? property_key assign_operator STRING 
