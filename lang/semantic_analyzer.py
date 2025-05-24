@@ -144,10 +144,7 @@ class SemanticAnalyzer(Visitor):
         elif isinstance(valid_values_for_prop, set): # 유효 값이 문자열 set으로 정의된 경우
             if assigned_value_str not in valid_values_for_prop:
                 error_msg = (
-                    f"Semantic Error (Line {string_value_token.line}, Col {string_value_token.column}): "
-                    f"Invalid value '{assigned_value_str}' for property '{prop_name_token.value}'"
-                    f" of object '{object_selector_node.children[0].value if object_selector_node else 'graph'}'. "
-                    f"Allowed values are: {', '.join(sorted(list(valid_values_for_prop)))}."
+                    f"'{object_selector_node.children[0].value if object_selector_node else '기본 객체'}' 객체의 속성 '{prop_name_token.value}'에 유효하지 않은 값 '{assigned_value_str}'이 할당되었습니다. 허용되는 값: {', '.join(sorted(list(valid_values_for_prop)))}."
                 )
-                self.errors.append(error_msg)
+                self._add_error(string_value_token, error_msg)
             pass
