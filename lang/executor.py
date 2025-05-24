@@ -350,6 +350,36 @@ class Executor(Transformer):
         """그래프 저장하는 함수 호출"""
         pass
 
+    def object_selector(self, items):
+        return items[0].type
+
+    def property_key(self, items):
+        return items[0]
+    
+    def property_assignment_statement(self, items): 
+        current_graph_data = self._get_current_graph_options()
+
+
+
+
+    def draw_statement(self, items):
+        current_graph_to_draw = self._get_current_graph_options()
+
+        if current_graph_to_draw:
+            # 실제 함수 호출
+            pass
+        else:
+            self._add_error("그래프 그릴 수 없는 상황")
+
+    def set_axis_labels_statement(self, items):
+        pass
+
+    def load_command(self, items):
+        pass
+
+    def save_command(self, items):
+        pass
+
 
 
 
