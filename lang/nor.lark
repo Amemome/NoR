@@ -47,25 +47,21 @@ create_graph_statement: CREATE_GRAPH_KEYWORD STRING
 // 그래프를 그리는 문장
 draw_statement: DRAW_KEYWORD
 
-
-
 // ======================================================================
 // Complex Property Assignment Statement (여러 속성을 한번에 정의 가능한 복합 문장)
 // ======================================================================
-set_axis_labels_statement: SET_LABELS_KEYWORD assign_operator STRING STRING
 
+set_axis_labels_statement: SET_LABELS_KEYWORD assign_operator STRING STRING
 
 // ======================================================================
 // Core Components for Property Assignment (속성 할당 핵심 요소)
 // ======================================================================
-
 
 // 속성을 할당해주는 연산자.
 assign_operator: "은" | "는" | "=" | "<-"
 
 // 어느 객체의 속성에 접근할 것인지 지정해주는 연산자.
 access_operator: "의" | "."
-
 
 // 다양한 속성을 나타내는 키워드들 (기존 property_keyword, graph_property_keyword, common_property_keyword 통합)
 property_key: SET_TITLE_KEYWORD

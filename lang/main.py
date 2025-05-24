@@ -10,6 +10,7 @@ with open(grammar_file_path, 'r', encoding='utf-8') as f:
 
 parser = Lark(grammar)
 
+
 parse_tree = None
 
 script = """
