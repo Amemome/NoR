@@ -5,6 +5,7 @@ from error import CompileError
 class SemanticAnalyzer(Visitor):
     def __init__(self):
         super().__init__()    
+        self.type_defined = False
         self.graph_created = False # 어떤 그래프라도 만들어져있는가?
         self.data_defined = False # 그래프에 대해서 데이터를 정의했는가?
         self.graph_name = None # 그래프의 이름..
@@ -87,6 +88,33 @@ class SemanticAnalyzer(Visitor):
                 self._add_error(final_error_token, error_msg)
                 break 
 
+    def create_graph_statement(self, tree: Tree):
+        graph_name_token = tree.children[1]
+        self.graph_name = graph_name_token.value.strip("'\"")
+        self.graph_created = True
+        self.type_defined = False
+        self.data_defined = False
+
+    def data_statement(self, tree: Tree):
+        data_keyword_token = tree.children[0]
+
+        if not self.graph_created:
+            self._add_error(data_keyword_token, "데이터를 정의하기 전에 '그래프생성' 명령으로 그래프를 먼저 만들어야 합니다.")
+            return
+        if not self.type_defined:
+            self._add_error(data_keyword_token, f"그래프 '{self.graph_name}'의 '종류'가 정의되지 않아 데이터를 할당할 수 없습니다.")
+            return
+        
+        self.data_defined = True
+    
+    def draw_statement(self, tree: Tree):
+        draw_keyword_token = tree.children[0] # 위치 정보용
+        if not self.graph_created:
+            self._add_error(draw_keyword_token, "'그리기' 명령 전에 '그래프생성'으로 그래프를 먼저 만들어야 합니다.")
+        elif not self.type_defined:
+            self._add_error(draw_keyword_token, f"그래프 '{self.graph_name}'의 '종류'가 정의되지 않아 그릴 수 없습니다.")
+
+
     # statement: (object_selector access_operator)? property_key assign_operator STRING 
     def property_assignment_statement(self, tree: Tree):
         """속성 할당문에 대한 유효성 검사를 행한다."""
@@ -114,6 +142,11 @@ class SemanticAnalyzer(Visitor):
                 string_value_token = child
                 break
 
+        if not property_key_node or not string_value_token:
+            token_for_error = tree.children[-1] if tree.children else tree # 대략적인 위치
+            self._add_error(token_for_error, "속성 할당 구문 분석에 실패했습니다. 키 또는 값이 누락되었을 수 있습니다.")
+            return
+        
         # 정보 추출
         prop_name_token = property_key_node.children[0] # 실제 속성 키워드 토큰 (예: '종류', '색')
         prop_name_type = prop_name_token.type      # EBNF 터미널 타입 (예: 'SET_TYPE_KEYWORD')
@@ -122,6 +155,24 @@ class SemanticAnalyzer(Visitor):
         current_object_type = "GRAPH_KEYWORD" # object 생략하면 기본은 그래프
         if object_selector_node:
             current_object_type = object_selector_node.children[0].type # 예: "MARKER_KEYWORD"
+        
+        # 그래프 상태 검사
+        if not self.graph_created:
+            self._add_error(prop_name_token, "속성을 설정하기 전에 '그래프생성' 명령으로 그래프를 먼저 만들어야 합니다.")
+            return
+        
+        is_defining_graph_type = (current_object_type == "GRAPH_KEYWORD" and
+                            prop_name_type == "SET_TYPE_KEYWORD")
+        
+        if is_defining_graph_type:
+            if self.type_defined: # 타입 재정의 ㄴㄴ
+                self._add_error(prop_name_token, f"그래프 종류의 재정의는 불가능합니다.")
+            
+            self.type_defined = True
+
+        else:
+            if not self.type_defined:
+                self._add_error(prop_name_token, f"그래프 '{self.graph_name}'의 '종류'가 정의되지 않아 속성 '{prop_name_token.value}'을(를) 설정할 수 없습니다.")
 
         valid_values_for_prop = None
 
