@@ -14,7 +14,6 @@ class SemanticAnalyzer(Visitor):
         self.VALIDATION_RULES = VALIDATION_RULES
     
     def _add_error(self, token, message):
-        print(token)
         line = getattr(token, 'line', '?')
         column = getattr(token, 'column', '?')
 
