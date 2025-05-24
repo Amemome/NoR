@@ -1,6 +1,5 @@
 // NoR의 문법을 정의합니다.
 
-
 // ======================================================================
 // Start Rule (시작 규칙)
 // ======================================================================
@@ -33,13 +32,11 @@ object_selector: GRAPH_KEYWORD     // "그래프의 배경색은 ..."
                | LINE_KEYWORD      // "선의 스타일은 ..."
 
 // io 관련된 문장
-
 io_statement: load_command 
             | save_command
 
 load_command: LOAD_KEYWORD STRING
 save_command: SAVE_KEYWORD STRING
-
 
 // 데이터 관련 문장
 data_statement: DATA_KEYWORD assign_operator vector
@@ -50,25 +47,21 @@ create_graph_statement: CREATE_GRAPH_KEYWORD STRING
 // 그래프를 그리는 문장
 draw_statement: DRAW_KEYWORD
 
-
-
 // ======================================================================
 // Complex Property Assignment Statement (여러 속성을 한번에 정의 가능한 복합 문장)
 // ======================================================================
-set_axis_labels_statement: SET_LABELS_KEYWORD STRING STRING
 
+set_axis_labels_statement: SET_LABELS_KEYWORD assign_operator STRING STRING
 
 // ======================================================================
 // Core Components for Property Assignment (속성 할당 핵심 요소)
 // ======================================================================
-
 
 // 속성을 할당해주는 연산자.
 assign_operator: "은" | "는" | "=" | "<-"
 
 // 어느 객체의 속성에 접근할 것인지 지정해주는 연산자.
 access_operator: "의" | "."
-
 
 // 다양한 속성을 나타내는 키워드들 (기존 property_keyword, graph_property_keyword, common_property_keyword 통합)
 property_key: SET_TITLE_KEYWORD
@@ -117,7 +110,6 @@ SET_COLOR_KEYWORD: "색" | "색상" | "색깔" | "color" | "colour" // 여기저
 SET_THICKNESS_KEYWORD: "굵기" | "thickness"
 SET_NAME_KEYWORD: "이름" 
 
-
 // ======================================================================
 // Data Types (데이터 타입) 기본 자료형
 // ======================================================================
@@ -140,19 +132,18 @@ FALSE: "false" | "False" | "거짓"
 DQ_STRING: /"[^"\\]*(\\.[^"\\]*)*"/
 SQ_STRING: /'[^'\\]*(\\.[^'\\]*)*'/
 
-
 // ======================================================================
 // Comments and Whitespace (주석 및 공백 처리)
 // ======================================================================
 
 LINE_COMMENT: /\/\/.*/
 BLOCK_COMMENT: /\/\*.*?\*\//s
+COMMA: ","
 
 %import common.WS
 %import common.SIGNED_NUMBER -> NUMBER
 %ignore WS
 
-// 주석을 무시
-
 %ignore LINE_COMMENT
 %ignore BLOCK_COMMENT
+%ignore COMMA
