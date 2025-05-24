@@ -14,9 +14,10 @@ class CompileError(Error):
     def __str__(self):
         return f"컴파일" + super().__str__() + self.message
 
-class RuntimeError(Error):
-    def __init__(self, line, column):
+class RunningError(Error):
+    def __init__(self, line, column, message):
         super().__init__(line, column)
+        self.message = message
 
     def __str__(self):
         return f"런타임" + super().__str__() + self.message
