@@ -14,14 +14,30 @@ y축은 "매출 (단위: 백만원)"
 그리기`;
 
 function CodeEditor({ value, onChange }) {
+  const lines = (value || defaultCode).split('\n');
+
   return (
-    <textarea
-      style={{ width: "100%", height: 300, fontFamily: "monospace", fontSize: 16, borderRadius: 8, padding: 12, resize: "vertical" }}
-      value={value || defaultCode}
-      onChange={e => onChange && onChange(e.target.value)}
-      spellCheck={false}
-    />
+    <div style={{ display: "flex", background: "#181c24", height: "100%" }}>
+      <pre style={{
+        color: "#888",
+        padding: "12px 8px 12px 0",
+        textAlign: "right",
+        margin: 0,
+        userSelect: "none"
+      }}>
+        {lines.map((_, i) => (
+          <div key={i} style={{ height: 22 }}>{i + 1}</div>
+        ))}
+      </pre>
+      <textarea
+        className="code-editor"
+        value={value || defaultCode}
+        onChange={e => onChange && onChange(e.target.value)}
+        spellCheck={false}
+        style={{ flex: 1, height: "100%", overflow: "auto" }}
+      />
+    </div>
   );
 }
 
-export default CodeEditor; 
+export default CodeEditor;

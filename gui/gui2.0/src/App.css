@@ -1,42 +1,78 @@
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+body {
+  background: #181c24 !important;
+  color: #e6e6e6 !important;
+  font-family: 'Fira Mono', 'Consolas', 'Menlo', 'monospace', 'Noto Sans KR', sans-serif;
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
+.main-content {
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+  padding: 0;
+  height: calc(100vh - 64px);
+  margin-top: 64px;
+  overflow: hidden;
+  min-width: 0;
+  min-height: 0;
+  width: 100vw;
+  box-sizing: border-box;
+}
+
+.flex-panel {
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.ant-card {
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  min-width: 0 !important;
+  overflow: auto !important;
+  border-radius: 0 !important;
+  box-shadow: 0 4px 24px #0004 !important;
+  color: #e6e6e6 !important;
+  border: none !important;
+}
+
+textarea, .code-editor {
+  background: #181c24 !important;
+  color: #e6e6e6 !important;
+  font-size: 16px;
+  font-family: 'Fira Mono', 'Consolas', 'Menlo', 'monospace', 'Noto Sans KR', sans-serif;
+  border: none;
+  padding: 12px;
+  border-radius: 8px;
+  resize: none;
+  box-shadow: 0 2px 8px #0002;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  background: #232733;
+}
+::-webkit-scrollbar-thumb {
+  background: #2c3140;
+  border-radius: 8px;
+}
+
+@media (max-width: 900px) {
+  .main-content {
+    flex-direction: column !important;
+    gap: 16px !important;
+    padding: 12px !important;
+    height: auto !important;
   }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
-}
-
-.card {
-  padding: 2em;
-}
-
-.read-the-docs {
-  color: #888;
 }
