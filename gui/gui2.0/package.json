@@ -11,9 +11,13 @@
     "prepare": "cross-env NODE_ENV=development npm install"
   },
   "dependencies": {
+    "@lottiefiles/react-lottie-player": "^3.6.0",
     "antd": "^5.25.3",
+    "framer-motion": "^12.15.0",
     "react": "^19.1.0",
-    "react-dom": "^19.1.0"
+    "react-dom": "^19.1.0",
+    "react-router-dom": "^7.6.1",
+    "typewriter-effect": "^2.22.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.25.0",
