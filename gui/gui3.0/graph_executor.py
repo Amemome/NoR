@@ -1,5 +1,3 @@
-# graph_executor.py
-
 import matplotlib
 matplotlib.use("Agg")  # GUI 백엔드 비활성화 (세그폴트 방지)
 
@@ -32,4 +30,4 @@ def draw_bar_chart(command):
     plt.ylabel(command.get("ylabel", headers[1]))
     plt.tight_layout()
     plt.savefig(command["save"])
-    plt.close()
+    plt.close() 

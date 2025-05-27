@@ -1,5 +1,3 @@
-# state_manager.py
-
 class NorStateManager:
     def __init__(self):
         self.theme = "DarkGrey13"
@@ -27,4 +25,4 @@ class NorStateManager:
             "xlabel": "카테고리",
             "ylabel": "값",
             "save": "bar_chart.png"
-        }
+        } 
