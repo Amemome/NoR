@@ -5,8 +5,8 @@ html, body, #root {
 }
 
 body {
-  background: #181c24 !important;
-  color: #e6e6e6 !important;
+  background: #181c24;
+  color: #e6e6e6;
   font-family: 'Fira Mono', 'Consolas', 'Menlo', 'monospace', 'Noto Sans KR', sans-serif;
 }
 
@@ -47,8 +47,8 @@ body {
 }
 
 textarea, .code-editor {
-  background: #181c24 !important;
-  color: #e6e6e6 !important;
+  background: #181c24;
+  color: #e6e6e6;
   font-size: 16px;
   font-family: 'Fira Mono', 'Consolas', 'Menlo', 'monospace', 'Noto Sans KR', sans-serif;
   border: none;
