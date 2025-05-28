@@ -1,21 +1,30 @@
 import React from "react";
-import { Tooltip } from "antd";
+import DefaultGraphSVG from "./DefaultGraphSVG";
 
 function ResultView() {
   return (
-    <div style={{ width: "100%", height: 280, display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
-      <Tooltip title={"그래프에서 우클릭하면 저장 메뉴가 나옵니다"} placement="top">
-        <img
-          src="https://static.thenounproject.com/png/17673-200.png"
-          alt="그래프 예시"
-          style={{ maxHeight: 240, maxWidth: "90%", borderRadius: 12, boxShadow: "0 2px 12px #0001", cursor: "pointer" }}
-          onContextMenu={e => {
-            // 브라우저 기본 우클릭 메뉴 허용 (툴팁만 안내)
-          }}
-        />
-      </Tooltip>
+    <div style={styles.container}>
+      <DefaultGraphSVG width={240} height={160} />
+      <p style={styles.text}>아직 그래프가 없습니다. 명령어를 입력해 실행해보세요!</p>
     </div>
   );
 }
+
+const styles = {
+  container: {
+    height: "100%",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    textAlign: "center",
+    opacity: 0.6,
+  },
+  text: {
+    marginTop: "1rem",
+    fontSize: "1rem",
+    color: "#999",
+  },
+};
 
 export default ResultView; 
