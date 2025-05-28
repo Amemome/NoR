@@ -25,12 +25,39 @@ const menuItems = [
   },
 ];
 
+const buttonStyle = {
+  fontSize: "1.08rem",
+  fontWeight: 700,
+  color: "#e6e6e6",
+  fontFamily: "'Fira Mono', 'Consolas', 'Menlo', 'monospace', 'Noto Sans KR', sans-serif",
+  transition: "all 0.18s cubic-bezier(.4,1.3,.6,1)",
+};
+
 function MenuBar() {
   return (
     <Space size="large">
       {menuItems.map((item) => (
         <Tooltip title={item.tooltip} key={item.label} placement="bottom">
-          <Button type="text" icon={item.icon} size="large">
+          <Button
+            type="text"
+            icon={item.icon}
+            size="large"
+            style={buttonStyle}
+            onMouseOver={e => {
+              e.currentTarget.style.color = "#38bdf8";
+              e.currentTarget.style.transform = "scale(1.1)";
+            }}
+            onMouseOut={e => {
+              e.currentTarget.style.color = "#e6e6e6";
+              e.currentTarget.style.transform = "scale(1)";
+            }}
+            onMouseDown={e => {
+              e.currentTarget.style.transform = "scale(0.95)";
+            }}
+            onMouseUp={e => {
+              e.currentTarget.style.transform = "scale(1.1)";
+            }}
+          >
             {item.label}
           </Button>
         </Tooltip>
