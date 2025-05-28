@@ -1,5 +1,5 @@
-import React, { useContext } from "react";
-import { Layout, ConfigProvider, theme } from "antd";
+import React, { useState, useContext } from "react";
+import { Layout, ConfigProvider, theme, message } from "antd";
 import MenuBar from "../components/MenuBar";
 import EditorPanel from "../components/EditorPanel";
 import ResultPanel from "../components/ResultPanel";
@@ -7,11 +7,47 @@ import ThemeToggle from "../components/ThemeToggle";
 import NoRLogo from "../components/NoRLogo";
 import "../App.css";
 import { ThemeContext } from "../components/ThemeContext";
+import { executeCode } from "../services/api";
 
 const { Header, Content } = Layout;
 
 function Editor() {
   const { dark } = useContext(ThemeContext);
+  const [code, setCode] = useState("");
+  const [result, setResult] = useState(null);
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  // 실행 함수
+  const handleExecute = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await executeCode(code);
+      if (response.success) {
+        setResult(response.result);
+        message.success("코드가 성공적으로 실행되었습니다.");
+      } else {
+        setError(response.errors);
+        setResult(null);
+        message.error("코드 실행 중 오류가 발생했습니다.");
+      }
+    } catch (err) {
+      setError(err.message);
+      setResult(null);
+      message.error("서버 연결 중 오류가 발생했습니다.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 코드 초기화 함수
+  const handleClear = () => {
+    setCode("");
+    setResult(null);
+    setError(null);
+  };
+
   return (
     <ConfigProvider
       theme={{
@@ -84,7 +120,14 @@ function Editor() {
             minHeight: 0,
             overflow: "hidden"
           }}>
-            <EditorPanel style={{ flex: 1, height: "100%", overflow: "hidden" }} />
+            <EditorPanel
+              code={code}
+              setCode={setCode}
+              onRun={handleExecute}
+              onClear={handleClear}
+              isRunning={loading}
+              style={{ flex: 1, height: "100%", overflow: "hidden" }}
+            />
           </div>
           <div style={{
             flex: 1,
@@ -95,7 +138,12 @@ function Editor() {
             minHeight: 0,
             overflow: "hidden"
           }}>
-            <ResultPanel style={{ flex: 1, height: "100%", overflow: "hidden" }} />
+            <ResultPanel
+              result={result}
+              error={error}
+              loading={loading}
+              style={{ flex: 1, height: "100%", overflow: "hidden" }}
+            />
           </div>
         </Content>
       </Layout>
