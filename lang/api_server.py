@@ -1,68 +1,101 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
-from semantic_analyzer import SemanticAnalyzer
 from lark import Lark
+from semantic_analyzer import SemanticAnalyzer
+import sys
 import os
+
+# 상위 디렉토리를 Python 경로에 추가
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from graph.graph import graph
 
 app = FastAPI()
 
-# CORS 설정
+# 정적 파일 서빙을 위한 디렉토리 생성
+os.makedirs("static", exist_ok=True)
+
+# CORS 설정 수정
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],  # Vite 기본 포트
+    allow_origins=["*"],  # 모든 origin 허용
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["*"],  # 모든 메서드 허용
+    allow_headers=["*"],  # 모든 헤더 허용
+    expose_headers=["*"]
 )
 
-# 문법 파일 로드
-with open('nor.lark', 'r', encoding='utf-8') as f:
-    grammar = f.read()
-parser = Lark(grammar)
+# 정적 파일 서빙 설정
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
+# Lark 파서 초기화
+with open("nor.lark", "r", encoding="utf-8") as f:
+    grammar = f.read()
+parser = Lark(grammar, start="start")
+
+# 요청 모델 정의
 class CodeRequest(BaseModel):
     code: str
 
 @app.post("/api/execute")
 async def execute_code(request: CodeRequest):
     try:
-        # 파싱
-        parse_tree = parser.parse(request.code)
+        # 코드 파싱
+        tree = parser.parse(request.code)
         
         # 의미 분석
         analyzer = SemanticAnalyzer()
-        analyzer.visit(parse_tree)
+        result = analyzer.visit(tree)
         
         if analyzer.errors:
             return {
                 "success": False,
                 "errors": [str(error) for error in analyzer.errors]
             }
-            
-        # TODO: 실제 실행 로직 구현
-        # 현재는 더미 데이터 반환
-        return {
-            "success": True,
-            "result": {
-                "chart": "bar",
-                "x": "카테고리",
-                "y": ["값"],
-                "data": [
-                    ["카테고리", "값"],
-                    ["A", 10],
-                    ["B", 15],
-                    ["C", 7]
-                ],
-                "title": "범주별 값 비교",
-                "xlabel": "카테고리",
-                "ylabel": "값",
-                "save": "bar_chart.png"
+
+        # 그래프 생성 로직
+        g = graph()
+        graph_data = {
+            '종류': '선그래프',  # 기본값
+            'x': [1, 2, 3, 4, 5],  # 기본 데이터
+            'y': [1, 2, 3, 4, 5],
+            '옵션': {
+                '제목': '테스트 그래프',
+                'x축': {
+                    '이름': 'X축',
+                    '색': 'black'
+                },
+                'y축': {
+                    '이름': 'Y축',
+                    '색': 'black'
+                },
+                '출력': {
+                    '파일로 저장': 'static/test.png',
+                    '그래프 크기': [8, 6],
+                    '해상도': 100
+                }
             }
         }
         
+        # 그래프 생성
+        g.draw(graph_data)
+        
+        return {
+            "success": True,
+            "result": {
+                "title": graph_data['옵션']['제목'],
+                "xlabel": graph_data['옵션']['x축']['이름'],
+                "ylabel": graph_data['옵션']['y축']['이름'],
+                "data": graph_data['y'],
+                "save": "test.png"
+            }
+        }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        return {
+            "success": False,
+            "errors": str(e)
+        }
 
 if __name__ == "__main__":
     import uvicorn
