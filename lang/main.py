@@ -1,6 +1,7 @@
 from lark import Lark
 from lark.exceptions import LarkError, UnexpectedToken, UnexpectedCharacters, UnexpectedEOF
 from semantic_analyzer import SemanticAnalyzer;
+from executor import Executor;
 
 grammar_file_path = 'nor.lark'
 grammar = None
@@ -14,11 +15,19 @@ parse_tree = None
 
 script = """
     // 에러 있는 코드
-    데이터는 [1, 2, 3, 4, 5, "1"]
-    그래프의 종류는 "선그래프"
+    그래프생성 "예제"
+    종류는 "선그래프"
+    데이터는 [1, 2, 3, 4, 5]
+    데이터는 [
+    [1,2,3], 
+    [3,34,5]
+    ]
     마커의 색은 "빨강"
     선의 종류는 "-"
     제목은 "월별 판매량"
+    x축의 제목은 "하이"
+    y축의 제목은 "이하"
+    그리기
         """
 try:
     parse_tree = parser.parse(script)
@@ -33,9 +42,14 @@ try:
     else:
         print("\nNo semantic errors found.")
 
+    executor = Executor(debug_mode=True)
+    executor.transform(parse_tree)
+
     
-except UnexpectedCharacters as err:
-    print(f"파싱 오류 {UnexpectedCharacters}: 행 {err.line}, 열 {err.column}, 토큰 '{err.token}'")
+
+    
+except UnexpectedToken as err:
+    print(f"파싱 오류 (UnexpectedCharacters): 행 {err.line}, 열 {err.column}, 토큰 '{err.token}'")
     print(f"  예상 토큰: {err.expected}")
     print(f"  컨텍스트: {err.get_context(script, 20)}")
 except UnexpectedCharacters as err:
