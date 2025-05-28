@@ -16,7 +16,6 @@ class graph:
         }
 
         함수매핑[종류](command)
-   
     COLOR_MAP = {
         '검정': '#000000', 'black': '#000000',
         '파랑': '#0000FF', 'blue': '#0000FF',
@@ -87,7 +86,6 @@ class graph:
 
         if 'label' in option:
             plot_option['label'] = option['label']
-    
 
         plt.bar(x, y, **plot_option)
         
@@ -100,6 +98,7 @@ class graph:
         self.save_or_show(출력옵션)
 
     def draw_scatter(self, command: dict):
+
         x = command.get('x')
         y = command.get('y')
         x, y = self.resolve_xy(x, y)
