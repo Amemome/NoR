@@ -408,12 +408,12 @@ class Executor(Transformer):
             return
 
         if target_dict is None:
-            
             return
 
 
     def draw_statement(self, items):
         current_graph_to_draw = self._get_current_graph_data_dict()
+        print(current_graph_to_draw)
 
         if current_graph_to_draw:
             # 실제 함수 호출
@@ -423,7 +423,7 @@ class Executor(Transformer):
 
     def set_axis_labels_statement(self, items):
         set_labels_token = items[0]
-        current_graph_data = self._get_current_graph_data_obj()
+        current_graph_data = self._get_current_graph_data_dict()
         if not current_graph_data:
             self._add_error(set_labels_token, "축 이름 설정 전 그래프가 먼저 생성되어야 합니다.")
             return
@@ -432,10 +432,53 @@ class Executor(Transformer):
         current_graph_data['옵션']['x축']['이름'] = x_label_val
         current_graph_data['옵션']['y축']['이름'] = y_label_val
         
-    def load_command(self, items):
-        pass
+    # def load_command(self, items):
+    #     load_token = items[0]
+    #     filepath = items[1]
+
+    #     current_graph_to_draw = self._get_current_graph_data_dict()
+    #     if not current_graph_to_draw:
+    #         self._add_error(load_token, "현재 작업 그래프를 찾을 수 없습니다.")
+    #         return  
+        
+    #     csv_data = ""
+    #     x_data = []
+    #     y_data = []
+    #     header = None
+    #     has_header = None
+    #     encoding = 'utf-8'
+
+    #     try:
+    #         with open(filepath, mode='r', encoding=encoding, newline='') as file:
+    #             csv_reader = csv.reader(file)
+    #             if has_header:
+    #                 try:
+    #                     header = next(csv_reader)
+    #                 except StopIteration:
+    #                     pass
+                
+    #             for row in csv_reader:
+    #                 processed_row = []
+    #                 for item in row:
+    #                     processed_row.append(float(item))
+                    
+    #                 data.append(processed_row)
+
+    #     except FileNotFoundError:
+    #         print(f"오류: 파일 '{filepath}'를 찾을 수 없습니다.")
+    #         raise
+    #     except UnicodeDecodeError:
+    #         print(f"오류: '{filepath}' 파일을 '{encoding}'으로 읽는 중 에러 발생. 인코딩을 확인하세요 (예: cp949).")
+    #         raise
+    #     except Exception as e:
+    #         print(f"오류: CSV 파일 처리 중 예외 발생 - {e}")
+    #         raise
+
+    #     print("읽기 시작")
+    #     pass
 
     def save_command(self, items):
+        """그래프 저장하는 함수 호출"""
         pass
 
 
