@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useContext } from "react";
 import { Layout, ConfigProvider, theme } from "antd";
 import MenuBar from "../components/MenuBar";
 import EditorPanel from "../components/EditorPanel";
@@ -6,29 +6,41 @@ import ResultPanel from "../components/ResultPanel";
 import ThemeToggle from "../components/ThemeToggle";
 import NoRLogo from "../components/NoRLogo";
 import "../App.css";
+import { ThemeContext } from "../components/ThemeContext";
 
 const { Header, Content } = Layout;
 
 function Editor() {
+  const { dark } = useContext(ThemeContext);
   return (
     <ConfigProvider
       theme={{
-        algorithm: theme.darkAlgorithm,
-        token: {
-          colorBgBase: "#181c24",
-          colorBgContainer: "#232733",
-          colorText: "#e6e6e6",
-          colorPrimary: "#1677ff",
-          colorPrimaryHover: "#4096ff",
-          colorPrimaryActive: "#0958d9",
-          borderRadius: 14,
-        },
+        algorithm: dark ? theme.darkAlgorithm : theme.defaultAlgorithm,
+        token: dark
+          ? {
+              colorBgBase: "#181c24",
+              colorBgContainer: "#232733",
+              colorText: "#e6e6e6",
+              colorPrimary: "#1677ff",
+              colorPrimaryHover: "#4096ff",
+              colorPrimaryActive: "#0958d9",
+              borderRadius: 14,
+            }
+          : {
+              colorBgBase: "#f8fafc",
+              colorBgContainer: "#fff",
+              colorText: "#22223b",
+              colorPrimary: "#1677ff",
+              colorPrimaryHover: "#60a5fa",
+              colorPrimaryActive: "#2563eb",
+              borderRadius: 14,
+            },
       }}
     >
-      <Layout style={{ minHeight: "100vh", background: "#181c24" }}>
+      <Layout style={{ minHeight: "100vh", background: dark ? "#181c24" : "#f8fafc" }}>
         <Header
           style={{
-            background: "#232733",
+            background: dark ? "#232733" : "#fff",
             padding: "0 40px",
             boxShadow: "0 2px 8px #0008",
             position: "fixed",
@@ -43,7 +55,7 @@ function Editor() {
           }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: 32 }}>
-            <NoRLogo size={32} />
+            <NoRLogo size={48} />
             <MenuBar />
           </div>
           <ThemeToggle />

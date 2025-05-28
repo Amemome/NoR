@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useContext } from "react";
 import { Tooltip, Switch } from "antd";
 import { BulbOutlined } from "@ant-design/icons";
+import { ThemeContext } from "./ThemeContext";
 
 const switchStyle = {
   background: "#232733",
@@ -14,8 +15,11 @@ const iconStyle = {
   transition: "all 0.18s cubic-bezier(.4,1.3,.6,1)",
 };
 
-function ThemeToggle() {
-  const [dark, setDark] = useState(false);
+function ThemeToggle(props) {
+  // Context 우선, 없으면 props fallback
+  const ctx = useContext(ThemeContext);
+  const dark = ctx ? ctx.dark : props.dark;
+  const setDark = ctx ? ctx.setDark : props.setDark;
 
   React.useEffect(() => {
     document.body.setAttribute('data-theme', dark ? 'dark' : 'light');
