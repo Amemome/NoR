@@ -50,7 +50,6 @@ LEGEND_POSITIONS = {
 # This is primarily for SemanticAnalyzer to check if a property is applicable to an object.
 
 VALIDATION_RULES = {
-    # "그래프" 속성 지정자
     "GRAPH_KEYWORD": {
         "SET_TYPE_KEYWORD": GRAPH_TYPES, # Actually validated by GRAPH_TYPE_VALUE in grammar
         "SET_TITLE_KEYWORD": None,      # Validated as STRING by grammar
@@ -77,12 +76,13 @@ VALIDATION_RULES = {
     },
     # "X축" 속성 지정자
     "X_AXIS_KEYWORD": {
-        "SET_NAME_KEYWORD": None, 
-        "SET_COLOR_KEYWORD": COLOR_VALUES, 
-        "SIZE_KEYWORD": None,
-
+        "SET_NAME_KEYWORD": None,       # Validated as STRING
+        "SET_COLOR_KEYWORD": COLOR_VALUES, # Validated by COLOR_VALUE
+        "SET_FONT_KEYWORD": None,       # Validated as STRING
+        "SIZE_KEYWORD": None,           # (e.g., for font size) Validated as NUMBER
+        "TICKS_KEYWORD": None,          # Validated as VECTOR
+        "SET_LABEL_KEYWORD": None,      # For axis label, validated as STRING
     },
-    # "Y축" 속성 지정자
     "Y_AXIS_KEYWORD": {
         "SET_NAME_KEYWORD": None,       # Validated as STRING (often used for label)
         "SET_COLOR_KEYWORD": COLOR_VALUES, # Validated by COLOR_VALUE
