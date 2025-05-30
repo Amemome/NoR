@@ -19,7 +19,24 @@ statement: property_assignment_statement
 // 속성 지정 문법 ("객체의 속성은 값이다" 또는 "속성은 값이다")
 // 예: 마커의 색은 "빨강"
 // 예: 배경색은 "검정" (현재 그래프의 배경색으로 간주)
-property_assignment_statement: (object_selector access_operator)? property_key assign_operator STRING
+// 속성 지정 문법 (각 속성 키에 따라 허용되는 값의 타입이 엄격히 정의됨)
+property_assignment_statement:
+    (object_selector access_operator)? SET_TYPE_KEYWORD assign_operator GRAPH_TYPE_VALUE // '종류'는 정해진 그래프 타입만
+  | (object_selector access_operator)? SET_TITLE_KEYWORD assign_operator STRING // '제목'은 문자열만
+  | (object_selector access_operator)? SET_LABEL_KEYWORD assign_operator STRING // '라벨'은 문자열만
+  | (object_selector access_operator)? SET_LEGEND_KEYWORD assign_operator LEGEND_POSITION_VALUE // '범례위치'는 정해진 위치만
+  | (object_selector access_operator)? SET_FONT_KEYWORD assign_operator STRING // '글꼴'은 문자열만
+  | (object_selector access_operator)? SET_BACKGROUND_KEYWORD assign_operator COLOR_VALUE // '배경색'은 정해진 색상만
+  | (object_selector access_operator)? SET_COLOR_KEYWORD assign_operator COLOR_VALUE // '색'은 정해진 색상만
+  | (object_selector access_operator)? SET_THICKNESS_KEYWORD assign_operator NUMBER // '굵기'는 숫자만
+  | (object_selector access_operator)? SET_NAME_KEYWORD assign_operator STRING // '이름'은 문자열만
+  | (object_selector access_operator)? ALPHA_KEYWORD assign_operator NUMBER // '투명도'는 숫자만
+  | (object_selector access_operator)? WIDTH_KEYWORD assign_operator NUMBER // '너비'는 숫자만
+  | (object_selector access_operator)? TICKS_KEYWORD assign_operator vector // '눈금'은 벡터만
+  | (object_selector access_operator)? GRAPH_SIZE_KEYWORD assign_operator vector // '그래프 크기'는 벡터만
+  | (object_selector access_operator)? RESOLUTION_KEYWORD assign_operator NUMBER // '해상도'는 숫자만
+  | (object_selector access_operator)? INNER_BACKGROUND_COLOR_KEYWORD assign_operator COLOR_VALUE // '내부 배경색'은 정해진 색상만
+  | (object_selector access_operator)? SAVE_FILE_KEYWORD assign_operator STRING // '파일로 저장'은 문자열만
 
 // 복합 속성 지정 여러가지의 속성을 한 문장에 할당
 complex_assignment_statement: set_axis_labels_statement
@@ -98,12 +115,20 @@ Y_AXIS_KEYWORD: "y축" | "와이축" | "ylabel" // Y축은 "와이축"
 // --- Property Name Keywords (속성 이름 키워드 정의) ---
 SET_TYPE_KEYWORD: "종류" | "타입" | "type" | "유형" // 유형은 "막대"
 SET_TITLE_KEYWORD: "제목" | "타이틀" | "title" // 제목 "문법 정의파일"
-SET_LABELS_KEYWORD: "축이름" | "레이블" | "labels" // 축이름 "엑스축" "와이축"
+SET_LABEL_KEYWORD: "라벨" | "label"
+SET_LABELS_KEYWORD: "축이름" | "labels" // 축이름 "엑스축" "와이축"
 
-SET_LEGEND_KEYWORD: "범례" | "legend" // 범례는.. "위치"
+SET_LEGEND_KEYWORD: "범례위치" | "범례" | "legend" // 범례는.. "위치"
 SET_FONT_KEYWORD: "글꼴" | "폰트" | "font" // 폰트는 "맑은 고딕"
-SET_RATIO_KEYWORD: "비율" | "그래프비율"  // 비율은 "3대1" , "3:1"
 SET_BACKGROUND_KEYWORD: "배경색" | "배경" // "배경은 "초록" "
+
+ALPHA_KEYWORD: "투명도" | "알파" | "alpha"
+WIDTH_KEYWORD: "너비"
+TICKS_KEYWORD: "눈금"
+GRAPH_SIZE_KEYWORD: "그래프 크기"
+RESOLUTION_KEYWORD: "해상도"
+INNER_BACKGROUND_COLOR_KEYWORD: "내부 배경색"
+SAVE_FILE_KEYWORD: "파일로 저장"
 
 // 공통 속성 지정 키워드
 SIZE_KEYWORD: "크기" | "size" // 폰트 크기 또는 그래프 크기 등에 사용될 수 있음
@@ -112,8 +137,80 @@ SET_THICKNESS_KEYWORD: "굵기" | "thickness"
 SET_NAME_KEYWORD: "이름" 
 
 // ======================================================================
+// Property Value Literal Definitions (속성 값 리터럴 정의)
+// ======================================================================
+
+// 그래프 종류 값
+GRAPH_TYPE_VALUE: LINE_PLOT | BAR_PLOT | SCATTER_PLOT
+
+LINE_PLOT: "선그래프" | "선" | "line" | "line plot"
+BAR_PLOT: "막대그래프" | "막대" | "bar" | "bar plot"
+SCATTER_PLOT: "산점도그래프" | "산점도" | "scatter" | "scatter plot"
+
+// 색상 값
+COLOR_VALUE:
+    BLACK_COLOR | BLUE_COLOR | BROWN_COLOR | GRAY_COLOR | GREEN_COLOR |
+    ORANGE_COLOR | PINK_COLOR | PURPLE_COLOR | RED_COLOR | WHITE_COLOR |
+    YELLOW_COLOR
+
+BLACK_COLOR: "검정" | "black"
+BLUE_COLOR: "파랑" | "blue"
+BROWN_COLOR: "갈색" | "brown"
+GRAY_COLOR: "회색" | "gray" | "grey"
+GREEN_COLOR: "초록" | "green"
+ORANGE_COLOR: "주황" | "orange"
+PINK_COLOR: "분홍" | "pink"
+PURPLE_COLOR: "보라" | "purple"
+RED_COLOR: "빨강" | "red"
+WHITE_COLOR: "흰색" | "white"
+YELLOW_COLOR: "노랑" | "yellow"
+
+// 마커 문양 값
+MARKER_SHAPE_VALUE:
+    CIRCLE_MARKER | SQUARE_MARKER | DOT_MARKER | X_MARKER | TRIANGLE_MARKER | STAR_MARKER
+
+CIRCLE_MARKER: "원" | "o"
+SQUARE_MARKER: "사각형" | "네모" | "s"
+DOT_MARKER: "점" | "."
+X_MARKER: "엑스" | "x" | "십자가"
+UP_TRIANGLE_MARKER: "삼각형" | "세모" | "^" | "삼각형 위" | "위쪽 삼각형"
+DOWN_TRIANGLE_MARKER: "삼각형 아래" | "아래쪽 삼각형" | "v" 
+LEFT_TRIANGLE_MARKER: "삼각형 왼쪽" | "왼쪽 삼각형" | "<"
+RIGHT_TRIANGLE_MARKER: "삼각형 오른쪽" | "오른쪽 삼각형" | ">"
+
+STAR_MARKER: "별" | "*" | "별표"
+
+// 선 스타일 값
+LINE_STYLE_VALUE: SOLID_LINE | DOTTED_LINE | DASHED_LINE | DASH_DOT_LINE
+
+SOLID_LINE: "실선" | "-"
+DOTTED_LINE: "점선" | ":"
+DASHED_LINE: "파선" | "--"
+DASH_DOT_LINE: "점선파선" | "-."
+
+// 범례 위치 값
+LEGEND_POSITION_VALUE:
+    BEST_POS | UPPER_RIGHT_POS | UPPER_LEFT_POS | LOWER_LEFT_POS | LOWER_RIGHT_POS |
+    RIGHT_POS | CENTER_LEFT_POS | CENTER_RIGHT_POS | LOWER_CENTER_POS | UPPER_CENTER_POS | CENTER_POS
+
+BEST_POS: "최적" | "best"
+UPPER_RIGHT_POS: "우상단" | "upper right"
+UPPER_LEFT_POS: "좌상단" | "upper left"
+LOWER_LEFT_POS: "좌하단" | "lower left"
+LOWER_RIGHT_POS: "우하단" | "lower right"
+RIGHT_POS: "오른쪽" | "right"
+CENTER_LEFT_POS: "좌중앙" | "center left"
+CENTER_RIGHT_POS: "우중앙" | "center right"
+LOWER_CENTER_POS: "하중앙" | "lower center"
+UPPER_CENTER_POS: "상중앙" | "upper center"
+CENTER_POS: "중앙" | "center"
+
+
+// ======================================================================
 // Data Types (데이터 타입) 기본 자료형
 // ======================================================================
+value: NUMBER | STRING | vector | BOOLEAN
+
 atom: NUMBER | STRING
 element: atom | vector
 elements: element ("," element)*
