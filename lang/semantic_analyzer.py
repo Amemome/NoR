@@ -1,5 +1,5 @@
 from lark import Visitor, Tree, Token
-from nor_config import VALIDATION_RULES
+from nor_config import VALIDATION_RULES, GRAPH_TYPES, MARKER_SHAPES, LINE_STYLES 
 from error import CompileError
 
 class SemanticAnalyzer(Visitor):
@@ -30,10 +30,14 @@ class SemanticAnalyzer(Visitor):
         if child.data == 'atom':
             atom_child = child.children[0]
             if isinstance(atom_child, Token):
-                return atom_child.type 
+                if atom_child.type == 'NUMBER':
+                    return 'NUMBER'
+                elif atom_child.type == 'STRING':
+                    return 'STRING'
+                elif atom_child.type == 'BOOLEAN': 
+                    return 'BOOLEAN'
         elif child.data == 'vector':
-            return "VECTOR" # 벡터임을 확인하고 반환.
-        
+            return "VECTOR"
         return None
     
     def vector(self, tree: Tree):
@@ -52,7 +56,7 @@ class SemanticAnalyzer(Visitor):
         first_element_token_for_error = None  # 첫 번째 요소의 위치 정보 (에러 메시지용)
         for i, element_node in enumerate(element_nodes):
             current_element_type = self._get_element_type(element_node)
-            
+                
             # 위치 정보를 위해 첫 번째 atom/vector 토큰을 찾습니다.
             # element -> atom -> TOKEN 또는 element -> vector
             actual_value_node = element_node.children[0]
@@ -114,87 +118,151 @@ class SemanticAnalyzer(Visitor):
         elif not self.type_defined:
             self._add_error(draw_keyword_token, f"그래프 '{self.graph_name}'의 '종류'가 정의되지 않아 그릴 수 없습니다.")
 
-
-    # statement: (object_selector access_operator)? property_key assign_operator STRING 
     def property_assignment_statement(self, tree: Tree):
-        """속성 할당문에 대한 유효성 검사를 행한다."""
-    
-        object_selector_node = None
-        property_key_node = None
-        string_value_token = None
+        obj_selector_node = None
+        prop_key_token = None
+        value_node = None
+        object_keyword_token_from_selector = None
         
-        # 토큰 추출
-
-        children_iter = iter(tree.children)
+        # `c`는 `tree.children`을 가리킴
+        c = tree.children 
         
-        child1 = next(children_iter, None)
-        if child1 and isinstance(child1, Tree) and child1.data == 'object_selector':
-            object_selector_node = child1
-            next(children_iter, None) # access_operator 건너뛰기
-            property_key_node = next(children_iter, None)
-
-        elif child1 and isinstance(child1, Tree) and child1.data == 'property_key':
-            property_key_node = child1
+        # --- 파스 트리 구조 분석 및 요소 추출 ---
+        # 케이스 1: MARKER_KEYWORD/LINE_KEYWORD로 시작하고 SET_TYPE_KEYWORD를 사용하는 특정 규칙
+        # 문법 예: marker_type_prop: MARKER_KEYWORD access_operator SET_TYPE_KEYWORD assign_operator MARKER_SHAPE_VALUE
+        # c의 예상 구조: [Token(MARKER_KEYWORD), Token(access_operator), Token(SET_TYPE_KEYWORD), Token(assign_operator), value_node]
+        if (len(c) >= 5 and isinstance(c[0], Token) and 
+            c[0].type in ["MARKER_KEYWORD", "LINE_KEYWORD"] and 
+            isinstance(c[2], Token) and c[2].type == "SET_TYPE_KEYWORD"):
+            object_keyword_token_from_selector = c[0]
+            # c[1] is access_operator
+            prop_key_token = c[2]
+            # c[3] is assign_operator
+            value_node = c[4]
         
-        # 남은 자식들 중에서 STRING 찾기 (assign_operator 다음)
-        for child in children_iter: 
-            if isinstance(child, Token) and child.type == 'STRING':
-                string_value_token = child
-                break
-
-        if not property_key_node or not string_value_token:
-            token_for_error = tree.children[-1] if tree.children else tree # 대략적인 위치
-            self._add_error(token_for_error, "속성 할당 구문 분석에 실패했습니다. 키 또는 값이 누락되었을 수 있습니다.")
-            return
-        
-        # 정보 추출
-        prop_name_token = property_key_node.children[0] # 실제 속성 키워드 토큰 (예: '종류', '색')
-        prop_name_type = prop_name_token.type      # EBNF 터미널 타입 (예: 'SET_TYPE_KEYWORD')
-        assigned_value_str = string_value_token.value.strip("'\"")
-
-        current_object_type = "GRAPH_KEYWORD" # object 생략하면 기본은 그래프
-        if object_selector_node:
-            current_object_type = object_selector_node.children[0].type # 예: "MARKER_KEYWORD"
-        
-        # 그래프 상태 검사
-        if not self.graph_created:
-            self._add_error(prop_name_token, "속성을 설정하기 전에 '그래프생성' 명령으로 그래프를 먼저 만들어야 합니다.")
-            return
-        
-        is_defining_graph_type = (current_object_type == "GRAPH_KEYWORD" and
-                            prop_name_type == "SET_TYPE_KEYWORD")
-        
-        if is_defining_graph_type:
-            if self.type_defined: # 타입 재정의 ㄴㄴ
-                self._add_error(prop_name_token, f"그래프 종류의 재정의는 불가능합니다.")
+        # 케이스 2: 그 외 (object_selector가 있거나 없거나, SET_TYPE_KEYWORD 또는 일반 속성)
+        # 문법 예 (object_selector 없는 SET_TYPE): graph_type_prop: SET_TYPE_KEYWORD assign_operator GRAPH_TYPE_VALUE
+        #   c의 예상 구조: [Token(SET_TYPE_KEYWORD), Token(assign_operator), value_node] (만약 (GRAPH_KEYWORD ...)? 부분이 매치 안됐다면)
+        # 문법 예 (object_selector 있는 일반 속성): general_prop: object_selector access_operator ...
+        #   c의 예상 구조: [Tree(object_selector), Token(access_operator), Token(KEYWORD), Token(assign_operator), value_node]
+        # 문법 예 (object_selector 없는 일반 속성): general_prop: KEYWORD assign_operator ...
+        #   c의 예상 구조: [Token(KEYWORD), Token(assign_operator), value_node]
+        else:
+            idx = 0
+            # object_selector (Tree) 확인
+            if idx < len(c) and isinstance(c[idx], Tree) and c[idx].data == 'object_selector':
+                obj_selector_node = c[idx]
+                if obj_selector_node.children: # object_selector가 비어있지 않은지 확인
+                    object_keyword_token_from_selector = obj_selector_node.children[0]
+                idx += 1 # object_selector 건너뛰기
+                if idx < len(c): # access_operator 건너뛰기 (존재한다면)
+                    idx += 1 
             
-            self.type_defined = True
+            # 속성 키 토큰
+            if idx < len(c) and isinstance(c[idx], Token):
+                prop_key_token = c[idx]
+                idx += 1 # prop_key_token 건너뛰기
+                if idx < len(c): # assign_operator 건너뛰기 (존재한다면)
+                    idx += 1
+                    if idx < len(c): # value_node 할당
+                        value_node = c[idx]
+                    else:
+                        self._add_error(prop_key_token or (c[0] if c else tree), "속성에 할당할 값이 누락되었습니다.")
+                        return
+                else:
+                    self._add_error(prop_key_token or (c[0] if c else tree), "할당 연산자 또는 값이 누락되었습니다.")
+                    return
+            else:
+                err_token = c[0] if c else tree
+                self._add_error(err_token, "속성 키를 분석할 수 없습니다.")
+                return
+        
+        # --- 컨텍스트 검사 ---
+        if not prop_key_token: # 위 로직에서 prop_key_token이 할당되지 않은 경우 방지
+             self._add_error(tree, "속성 할당문의 분석에 실패했습니다 (속성 키 누락).")
+             return
 
+        if not self.graph_created:
+            self._add_error(prop_key_token, "속성을 설정하기 전에 '그래프생성' 명령으로 그래프를 먼저 만들어야 합니다.")
+            return
+        
+        current_object_type_name = "GRAPH_KEYWORD" 
+        if object_keyword_token_from_selector:
+            current_object_type_name = object_keyword_token_from_selector.type
+        
+        prop_key_type_name = prop_key_token.type
+
+        is_defining_graph_main_type = (current_object_type_name == "GRAPH_KEYWORD" and 
+                                       prop_key_type_name == "SET_TYPE_KEYWORD")
+
+        if is_defining_graph_main_type:
+            if self.type_defined:
+                self._add_error(prop_key_token, f"그래프 '{self.current_graph_name}'의 종류는 한 번만 정의할 수 있습니다.")
+            self.type_defined = True
         else:
             if not self.type_defined:
-                self._add_error(prop_name_token, f"그래프 '{self.graph_name}'의 '종류'가 정의되지 않아 속성 '{prop_name_token.value}'을(를) 설정할 수 없습니다.")
+                self._add_error(prop_key_token, f"그래프 '{self.current_graph_name}'의 '종류'가 정의되지 않아 '{prop_key_token.value}' 속성을 설정할 수 없습니다.")
+                return 
+            
+        # --- 적용 가능성 검사 (객체-속성 조합) ---
+        if current_object_type_name not in self.VALIDATION_RULES:
+            error_token_for_object = object_keyword_token_from_selector or \
+                                     (obj_selector_node.children[0] if obj_selector_node and obj_selector_node.children else prop_key_token)
+            self._add_error(error_token_for_object, f"알 수 없는 객체 타입 '{current_object_type_name}'에 속성을 지정할 수 없습니다.")
+            return
 
-        valid_values_for_prop = None
+        object_specific_rules = self.VALIDATION_RULES[current_object_type_name]
+        object_name_for_msg = (object_keyword_token_from_selector.value if object_keyword_token_from_selector 
+                               else (obj_selector_node.children[0].value if obj_selector_node and obj_selector_node.children else "그래프"))
 
-        if current_object_type in self.VALIDATION_RULES:
-            object_rules = self.VALIDATION_RULES[current_object_type]
-            if prop_name_type in object_rules:
-                valid_values_for_prop = object_rules[prop_name_type]
+        if prop_key_type_name not in object_specific_rules:
+            self._add_error(prop_key_token, f"'{object_name_for_msg}' 객체에는 '{prop_key_token.value}' 속성을 설정할 수 없습니다.")
+            return
+        
+        # --- SET_TYPE_KEYWORD에 대한 값 유효성 검사 (분기) ---
+        if prop_key_type_name == "SET_TYPE_KEYWORD":
+            actual_value_str = ""
+            value_token_for_error = value_node 
+
+            # value_node가 Token인지, 아니면 특정 값 규칙(예: MARKER_SHAPE_VALUE)의 Tree인지 확인 필요
+            # 문법에서 MARKER_SHAPE_VALUE 등이 규칙(rule)이므로, value_node는 Tree일 가능성이 높음
+            # Tree('marker_shape_value', [Token(CIRCLE_MARKER, '원')])
+            if isinstance(value_node, Tree) and value_node.children and isinstance(value_node.children[0], Token):
+                actual_value_str = value_node.children[0].value
+                value_token_for_error = value_node.children[0]
+            elif isinstance(value_node, Token): # 만약 value_node가 바로 최종 값 토큰이라면
+                actual_value_str = value_node.value
             else:
-                # 객체(current_object_type)에 해당 속성(prop_name_type) 규칙이 정의되지 않는 경우
-                self._add_error(prop_name_token, f"{current_object_type}의 속성에 {prop_name_type}이라는 속성이 존재하지 않습니다.")
-        else:
-            # 객체(current_object_type)에 대한 규칙 자체가 없는 경우
-            error_token = current_object_type if current_object_type else prop_name_token
-            self._add_error(error_token, f"{current_object_type}이라는 속성이 존재하지 않습니다.")
+                self._add_error(value_node or prop_key_token, f"'{prop_key_token.value}' 속성의 값을 분석할 수 없습니다 (예상치 못한 값 노드 구조).")
+                return
 
-        if valid_values_for_prop is None:
-            pass # 규칙이 None이면 모든 값을 허용
+            valid_types_set = None
+            expected_value_description = ""
 
-        elif isinstance(valid_values_for_prop, set): # 유효 값이 문자열 set으로 정의된 경우
-            if assigned_value_str not in valid_values_for_prop:
-                error_msg = (
-                    f"'{object_selector_node.children[0].value if object_selector_node else '기본 객체'}' 객체의 속성 '{prop_name_token.value}'에 유효하지 않은 값 '{assigned_value_str}'이 할당되었습니다. 허용되는 값: {', '.join(sorted(list(valid_values_for_prop)))}."
-                )
-                self._add_error(string_value_token, error_msg)
-            pass
+            if current_object_type_name == "GRAPH_KEYWORD":
+                valid_types_set = GRAPH_TYPES # nor_config.py에서 임포트한 GRAPH_TYPES 변수 (세트 형태여야 함)
+                expected_value_description = "그래프 종류 (예: 선그래프, 막대그래프)"
+            elif current_object_type_name == "MARKER_KEYWORD":
+                valid_types_set = MARKER_SHAPES # nor_config.py의 MARKER_SHAPES 변수
+                expected_value_description = "마커 종류 (예: 원, 사각형)"
+            elif current_object_type_name == "LINE_KEYWORD":
+                valid_types_set = LINE_STYLES # nor_config.py의 LINE_STYLES 변수
+                expected_value_description = "선 종류 (예: 실선, 점선)"
+            # 다른 객체 타입에 SET_TYPE_KEYWORD가 적용된다면 여기에 'elif' 블록 추가
+
+            if valid_types_set is not None: # valid_types_set이 정상적으로 할당된 경우에만 검사
+                if actual_value_str not in valid_types_set:
+                    # 허용되는 값 목록을 조금만 보여주거나, 대표적인 예시를 보여주는 것이 좋음
+                    example_values = list(valid_types_set)[:3] # 처음 3개 예시
+                    self._add_error(value_token_for_error, 
+                                    f"'{object_name_for_msg}' 객체의 '{prop_key_token.value}' 속성에 유효하지 않은 값 '{actual_value_str}'이(가) 할당되었습니다. "
+                                    f"허용되는 값은 {expected_value_description} 중 하나여야 합니다 (예: {', '.join(example_values)}).")
+                    return
+            else: # 이 객체 타입에 대해 SET_TYPE_KEYWORD에 대한 유효 값 세트가 정의되지 않은 경우
+                  # (이 경우는 VALIDATION_RULES에서 prop_key_type_name 검사 시 이미 걸러졌어야 함)
+                 self._add_error(prop_key_token, f"내부 오류: '{object_name_for_msg}' 객체의 '{prop_key_token.value}' 속성에 대한 유효 값 규칙이 정의되지 않았습니다.")
+                 return
+        
+        # --- 값이 벡터인 경우 내부 유효성 검사 ---
+        if isinstance(value_node, Tree) and value_node.data == 'vector':
+            self.visit(value_node)
