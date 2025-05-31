@@ -40,8 +40,7 @@ graph1 = {
             '그래프 크기': [6, 6],
             '해상도': 100,
             '배경색': 'white',
-            '내부 배경색' : 'white',
-            '파일로 저장': '키_선그래프.png'
+            '내부 배경색' : 'white'
         }
     }
 }
@@ -119,5 +118,6 @@ graph3 = {
 
 g = graph()
 g.draw(graph1)
+g.save(graph1)
 g.draw(graph2)
 g.draw(graph3)
