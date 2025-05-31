@@ -20,8 +20,9 @@ statement: property_assignment_statement
 // 예: 마커의 색은 "빨강"
 // 예: 배경색은 "검정" (현재 그래프의 배경색으로 간주)
 // 속성 지정 문법 (각 속성 키에 따라 허용되는 값의 타입이 엄격히 정의됨)
-property_assignment_statement:
-    (object_selector access_operator)? SET_TYPE_KEYWORD assign_operator GRAPH_TYPE_VALUE // '종류'는 정해진 그래프 타입만
+property_assignment_statement:  LINE_KEYWORD access_operator SET_TYPE_KEYWORD assign_operator LINE_STYLE_VALUE // 선의 '종류'
+  | MARKER_KEYWORD access_operator SET_TYPE_KEYWORD assign_operator MARKER_SHAPE_VALUE // 마커 종류
+  | (object_selector access_operator)? SET_TYPE_KEYWORD assign_operator GRAPH_TYPE_VALUE // '종류'는 정해진 그래프 타입만
   | (object_selector access_operator)? SET_TITLE_KEYWORD assign_operator STRING // '제목'은 문자열만
   | (object_selector access_operator)? SET_LABEL_KEYWORD assign_operator STRING // '라벨'은 문자열만
   | (object_selector access_operator)? SET_LEGEND_KEYWORD assign_operator LEGEND_POSITION_VALUE // '범례위치'는 정해진 위치만
@@ -137,10 +138,7 @@ BAR_PLOT: "막대그래프" | "막대" | "bar" | "bar plot"
 SCATTER_PLOT: "산점도그래프" | "산점도" | "scatter" | "scatter plot"
 
 // 색상 값
-COLOR_VALUE:
-    BLACK_COLOR | BLUE_COLOR | BROWN_COLOR | GRAY_COLOR | GREEN_COLOR |
-    ORANGE_COLOR | PINK_COLOR | PURPLE_COLOR | RED_COLOR | WHITE_COLOR |
-    YELLOW_COLOR
+COLOR_VALUE: BLACK_COLOR | BLUE_COLOR | BROWN_COLOR | GRAY_COLOR | GREEN_COLOR | ORANGE_COLOR | PINK_COLOR | PURPLE_COLOR | RED_COLOR | WHITE_COLOR | YELLOW_COLOR
 
 BLACK_COLOR: "검정" | "black"
 BLUE_COLOR: "파랑" | "blue"
@@ -155,8 +153,7 @@ WHITE_COLOR: "흰색" | "white"
 YELLOW_COLOR: "노랑" | "yellow"
 
 // 마커 문양 값
-MARKER_SHAPE_VALUE:
-    CIRCLE_MARKER | SQUARE_MARKER | DOT_MARKER | X_MARKER | TRIANGLE_MARKER | STAR_MARKER
+MARKER_SHAPE_VALUE: CIRCLE_MARKER | SQUARE_MARKER | DOT_MARKER | X_MARKER | UP_TRIANGLE_MARKER | DOWN_TRIANGLE_MARKER | LEFT_TRIANGLE_MARKER | RIGHT_TRIANGLE_MARKER | STAR_MARKER
 
 CIRCLE_MARKER: "원" | "o"
 SQUARE_MARKER: "사각형" | "네모" | "s"
@@ -178,9 +175,8 @@ DASHED_LINE: "파선" | "--"
 DASH_DOT_LINE: "점선파선" | "-."
 
 // 범례 위치 값
-LEGEND_POSITION_VALUE:
-    BEST_POS | UPPER_RIGHT_POS | UPPER_LEFT_POS | LOWER_LEFT_POS | LOWER_RIGHT_POS |
-    RIGHT_POS | CENTER_LEFT_POS | CENTER_RIGHT_POS | LOWER_CENTER_POS | UPPER_CENTER_POS | CENTER_POS
+LEGEND_POSITION_VALUE: BEST_POS | UPPER_RIGHT_POS | UPPER_LEFT_POS | LOWER_LEFT_POS | LOWER_RIGHT_POS
+     | RIGHT_POS | CENTER_LEFT_POS | CENTER_RIGHT_POS | LOWER_CENTER_POS | UPPER_CENTER_POS | CENTER_POS
 
 BEST_POS: "최적" | "best"
 UPPER_RIGHT_POS: "우상단" | "upper right"
