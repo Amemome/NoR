@@ -9,7 +9,7 @@ grammar = None
 with open(grammar_file_path, 'r', encoding='utf-8') as f:
     grammar = f.read()
 
-parser = Lark(grammar)
+parser = Lark(grammar, propagate_positions=True)
 
 parse_tree = None
 
