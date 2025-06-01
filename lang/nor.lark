@@ -55,7 +55,7 @@ io_statement: load_command
             | save_command
 
 load_command: LOAD_KEYWORD STRING
-save_command: SAVE_KEYWORD STRING
+save_command: SAVE_KEYWORD
 
 // 데이터 관련 문장
 data_statement: DATA_KEYWORD assign_operator vector
