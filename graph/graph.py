@@ -65,7 +65,7 @@ class graph:
             plot_option['alpha'] = line.get('alpha')
 
         plt.plot(x, y, **plot_option)
-        
+
         if 'x축' in option:
             self.set_axis(option['x축'], 'x')
         if 'y축' in option:
