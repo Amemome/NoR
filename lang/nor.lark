@@ -22,6 +22,7 @@ statement: property_assignment_statement
 // 속성 지정 문법 (각 속성 키에 따라 허용되는 값의 타입이 엄격히 정의됨)
 property_assignment_statement:  LINE_KEYWORD access_operator SET_TYPE_KEYWORD assign_operator LINE_STYLE_VALUE // 선의 '종류'
   | MARKER_KEYWORD access_operator SET_TYPE_KEYWORD assign_operator MARKER_SHAPE_VALUE // 마커 종류
+  | MARKER_KEYWORD access_operator SIZE_KEYWORD assign_operator NUMBER // 마커의 크기
   | (object_selector access_operator)? SET_TYPE_KEYWORD assign_operator GRAPH_TYPE_VALUE // '종류'는 정해진 그래프 타입만
   | (object_selector access_operator)? SET_TITLE_KEYWORD assign_operator STRING // '제목'은 문자열만
   | (object_selector access_operator)? SET_LABEL_KEYWORD assign_operator STRING // '라벨'은 문자열만
