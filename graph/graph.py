@@ -66,6 +66,10 @@ class graph:
 
         plt.plot(x, y, **plot_option)
 
+        if 'label' in option
+            plt.legend(loc=출력옵션.get('범례 위치', 'best'))
+        if '제목' in option:
+            plt.title(option['제목'])
         if 'x축' in option:
             self.set_axis(option['x축'], 'x')
         if 'y축' in option:
