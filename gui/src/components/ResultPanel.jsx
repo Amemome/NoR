@@ -10,7 +10,7 @@ const panelTitleStyle = {
   fontFamily: "'Fira Mono', 'Consolas', 'Menlo', 'monospace', 'Noto Sans KR', sans-serif",
 };
 
-function ResultPanel({ result, error, loading, style }) {
+function ResultPanel({ result, error, loading, log, style }) {
   return (
     <div className="flex-panel" style={{ ...style }}>
       <Card
@@ -31,7 +31,7 @@ function ResultPanel({ result, error, loading, style }) {
         style={{ flex: 1 }}
         bodyStyle={{ height: "100%", overflow: "auto", padding: 0 }}
       >
-        <LogPanel />
+        <LogPanel log={log} />
       </Card>
     </div>
   );

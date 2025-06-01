@@ -19,11 +19,14 @@ const logs = [
   },
 ];
 
-function LogPanel() {
+function LogPanel({ log }) {
+  if (!log || log.length === 0) {
+    return <div style={{ color: '#888', padding: '1rem' }}>아직 로그가 없습니다. 명령어를 실행해보세요!</div>;
+  }
   return (
     <List
       size="small"
-      dataSource={logs}
+      dataSource={log}
       renderItem={item => (
         <List.Item>
           <Tag color={item.type === "error" ? "red" : item.type === "success" ? "green" : "blue"}>

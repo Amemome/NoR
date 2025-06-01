@@ -17,24 +17,29 @@ function Editor() {
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [log, setLog] = useState([]);
 
   // 실행 함수
   const handleExecute = async () => {
     setLoading(true);
     setError(null);
+    setLog([]);
     try {
       const response = await executeCode(code);
       if (response.success) {
         setResult(response.result);
+        setLog([{ source: "parser", type: "success", message: "파싱 성공! 그래프를 그릴 준비가 완료되었습니다." }]);
         message.success("코드가 성공적으로 실행되었습니다.");
       } else {
         setError(response.errors);
         setResult(null);
+        setLog([{ source: "compileNorEngine", type: "error", message: response.errors?.join('\n') || "알 수 없는 오류" }]);
         message.error("코드 실행 중 오류가 발생했습니다.");
       }
     } catch (err) {
       setError(err.message);
       setResult(null);
+      setLog([{ source: "network", type: "error", message: err.message }]);
       message.error("서버 연결 중 오류가 발생했습니다.");
     } finally {
       setLoading(false);
@@ -46,6 +51,7 @@ function Editor() {
     setCode("");
     setResult(null);
     setError(null);
+    setLog([]);
   };
 
   return (
@@ -142,6 +148,7 @@ function Editor() {
               result={result}
               error={error}
               loading={loading}
+              log={log}
               style={{ flex: 1, height: "100%", overflow: "hidden" }}
             />
           </div>
