@@ -99,7 +99,6 @@ class SemanticAnalyzer(Visitor):
         self.type_defined = False
         self.data_defined = False
 
-
     def data_statement(self, tree: Tree):
         data_keyword_token = tree.children[0]
 
