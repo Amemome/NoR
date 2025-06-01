@@ -16,15 +16,16 @@ parse_tree = None
 script = """
 // Test 3: 객체 선택자 없는 속성 및 기본값
 그래프생성 "기본 설정 테스트"
-종류는 산점도그래프 // 영문 및 따옴표 사용 테스트
+종류는 산점도그래프 
+마커의 종류는 ^
 
 데이터는 [[1,2,3,4,5], [5,4,3,2,1]]
 
 제목은 "산점도 기본 테스트" 
-그래프 크기는 [10, 20]  
-마커.종류는 원 
+그래프 크기는 [5, 6]  
 x축의 색은 "black"
 그리기
+
         """
 try:
     parse_tree = parser.parse(script)
@@ -36,8 +37,10 @@ try:
         print("\nSemantic Errors Found:")
         for error in analyzer.errors:
             print(f"- {error}")
+        exit(0)
     else:
         print("\nNo semantic errors found.")
+        
 
     executor = Executor(debug_mode=True)
     executor.transform(parse_tree)

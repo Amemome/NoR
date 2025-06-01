@@ -99,6 +99,7 @@ class SemanticAnalyzer(Visitor):
         self.type_defined = False
         self.data_defined = False
 
+
     def data_statement(self, tree: Tree):
         data_keyword_token = tree.children[0]
 
@@ -197,11 +198,11 @@ class SemanticAnalyzer(Visitor):
 
         if is_defining_graph_main_type:
             if self.type_defined:
-                self._add_error(prop_key_token, f"그래프 '{self.current_graph_name}'의 종류는 한 번만 정의할 수 있습니다.")
+                self._add_error(prop_key_token, f"그래프 '{self.graph_name}'의 종류는 한 번만 정의할 수 있습니다.")
             self.type_defined = True
         else:
             if not self.type_defined:
-                self._add_error(prop_key_token, f"그래프 '{self.current_graph_name}'의 '종류'가 정의되지 않아 '{prop_key_token.value}' 속성을 설정할 수 없습니다.")
+                self._add_error(prop_key_token, f"그래프 '{self.graph_name}'의 '종류'가 정의되지 않아 '{prop_key_token.value}' 속성을 설정할 수 없습니다.")
                 return 
             
         # --- 적용 가능성 검사 (객체-속성 조합) ---
