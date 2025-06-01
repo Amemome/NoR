@@ -8,10 +8,12 @@ import NoRLogo from "../components/NoRLogo";
 import "../App.css";
 import { ThemeContext } from "../components/ThemeContext";
 import { executeCode } from "../services/api";
+import { useNavigate } from "react-router-dom";
 
 const { Header, Content } = Layout;
 
 function Editor() {
+  const navigate = useNavigate();
   const { dark } = useContext(ThemeContext);
   const [code, setCode] = useState("");
   const [result, setResult] = useState(null);
@@ -97,7 +99,9 @@ function Editor() {
           }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: 32 }}>
-            <NoRLogo size={48} />
+            <div onClick={() => navigate("/")} style={{ cursor: "pointer" }}>
+              <NoRLogo size={48} />
+            </div>
             <MenuBar />
           </div>
           <ThemeToggle />
