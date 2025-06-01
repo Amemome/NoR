@@ -18,6 +18,8 @@ script = """
 그래프생성 "기본 설정 테스트"
 종류는 산점도그래프 
 마커의 종류는 ^
+라벨은 "범레임"
+범례는 우상단
 
 데이터는 [[1,2,3,4,5], [5,4,3,2,1]]
 
@@ -44,8 +46,6 @@ try:
 
     executor = Executor(debug_mode=True)
     executor.transform(parse_tree)
-
-    
 
     
 except UnexpectedToken as err:
