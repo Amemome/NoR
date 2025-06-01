@@ -1,11 +1,15 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from lark import Lark
 from semantic_analyzer import SemanticAnalyzer
 import sys
 import os
+import uuid
+from datetime import datetime
+import matplotlib.pyplot as plt
 
 # 상위 디렉토리를 Python 경로에 추가
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -37,6 +41,8 @@ parser = Lark(grammar, start="start")
 # 요청 모델 정의
 class CodeRequest(BaseModel):
     code: str
+    filename: str = None
+    format: str = "png"
 
 @app.post("/api/execute")
 async def execute_code(request: CodeRequest):
@@ -81,6 +87,20 @@ async def execute_code(request: CodeRequest):
         # 그래프 생성
         g.draw(graph_data)
         
+        # 파일명 생성
+        if not request.filename:
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            filename = f"graph_{timestamp}.{request.format}"
+        else:
+            filename = f"{request.filename}.{request.format}"
+        
+        # 파일 저장 경로
+        filepath = os.path.join("static", filename)
+        
+        # 그래프 저장
+        plt.savefig(filepath, format=request.format, dpi=300, bbox_inches='tight')
+        plt.close()
+        
         return {
             "success": True,
             "result": {
@@ -88,7 +108,8 @@ async def execute_code(request: CodeRequest):
                 "xlabel": graph_data['옵션']['x축']['이름'],
                 "ylabel": graph_data['옵션']['y축']['이름'],
                 "data": graph_data['y'],
-                "save": "test.png"
+                "imageUrl": f"/static/{filename}",
+                "filename": filename
             }
         }
     except Exception as e:
@@ -96,6 +117,13 @@ async def execute_code(request: CodeRequest):
             "success": False,
             "errors": str(e)
         }
+
+@app.get("/api/download/{filename}")
+async def download_file(filename: str):
+    file_path = os.path.join("static", filename)
+    if not os.path.exists(file_path):
+        raise HTTPException(status_code=404, detail="File not found")
+    return FileResponse(file_path, filename=filename)
 
 if __name__ == "__main__":
     import uvicorn
