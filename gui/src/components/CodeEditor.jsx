@@ -14,7 +14,7 @@ y축은 "매출 (단위: 백만원)"
 저장은 "매출분석.png"
 그리기`;
 
-function CodeEditor({ value, onChange, placeholder }) {
+function CodeEditor({ value, onChange, placeholder, error }) {
   const { dark } = useContext(ThemeContext);
   const lines = (value || defaultCode).split('\n');
 
@@ -59,29 +59,36 @@ function CodeEditor({ value, onChange, placeholder }) {
           <div key={i} style={{ height: "1.6em" }}>{i + 1}</div>
         ))}
       </pre>
-      <textarea
-        style={editorStyle}
-        value={value || defaultCode}
-        onChange={e => onChange && onChange(e.target.value)}
-        placeholder={placeholder}
-        spellCheck={false}
-        onFocus={e => {
-          e.currentTarget.style.borderColor = "#38bdf8";
-          e.currentTarget.style.boxShadow = "0 4px 16px #38bdf855";
-        }}
-        onBlur={e => {
-          e.currentTarget.style.borderColor = borderColor;
-          e.currentTarget.style.boxShadow = `0 2px 8px ${shadowColor}`;
-        }}
-        onMouseOver={e => {
-          e.currentTarget.style.borderColor = "#60a5fa";
-        }}
-        onMouseOut={e => {
-          if (document.activeElement !== e.currentTarget) {
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+        <textarea
+          style={{ ...editorStyle, flex: 1, minHeight: 0 }}
+          value={value || defaultCode}
+          onChange={e => onChange && onChange(e.target.value)}
+          placeholder={placeholder}
+          spellCheck={false}
+          onFocus={e => {
+            e.currentTarget.style.borderColor = "#38bdf8";
+            e.currentTarget.style.boxShadow = "0 4px 16px #38bdf855";
+          }}
+          onBlur={e => {
             e.currentTarget.style.borderColor = borderColor;
-          }
-        }}
-      />
+            e.currentTarget.style.boxShadow = `0 2px 8px ${shadowColor}`;
+          }}
+          onMouseOver={e => {
+            e.currentTarget.style.borderColor = "#60a5fa";
+          }}
+          onMouseOut={e => {
+            if (document.activeElement !== e.currentTarget) {
+              e.currentTarget.style.borderColor = borderColor;
+            }
+          }}
+        />
+        {error && (
+          <div style={{ color: 'red', minHeight: 24, marginTop: 4 }}>
+            {Array.isArray(error) ? error.join('\n') : error}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
