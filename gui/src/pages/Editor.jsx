@@ -31,9 +31,9 @@ function Editor() {
         setLog([{ source: "parser", type: "success", message: "파싱 성공! 그래프를 그릴 준비가 완료되었습니다." }]);
         message.success("코드가 성공적으로 실행되었습니다.");
       } else {
-        setError(response.errors);
+        setError(Array.isArray(response.errors) ? response.errors.join('\n') : (response.errors || "알 수 없는 오류"));
         setResult(null);
-        setLog([{ source: "compileNorEngine", type: "error", message: response.errors?.join('\n') || "알 수 없는 오류" }]);
+        setLog([{ source: "compileNorEngine", type: "error", message: Array.isArray(response.errors) ? response.errors.join('\n') : (response.errors || "알 수 없는 오류") }]);
         message.error("코드 실행 중 오류가 발생했습니다.");
       }
     } catch (err) {
