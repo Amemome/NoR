@@ -50,7 +50,7 @@ class graph:
 
         plt.plot(x, y, **plot_option)
 
-        if 'label' in option
+        if 'label' in option:
             plt.legend(loc=출력옵션.get('범례 위치', 'best'))
         if '제목' in option:
             plt.title(option['제목'])
@@ -112,7 +112,6 @@ class graph:
             plt.show()
 
     def draw_scatter(self, command: dict):
-
         x = command.get('x')
         y = command.get('y')
         option = command.get('옵션', {})
@@ -159,7 +158,7 @@ class graph:
             plt.show()
 
     def set_axis(self, 축옵션: dict, 축: str):
-        axis= 축옵션.get('이름', '')
+        axis = 축옵션.get('이름', '')
         kwargs = {}
 
         if '색' in 축옵션:
