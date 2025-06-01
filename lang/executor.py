@@ -30,7 +30,7 @@ class Executor(Transformer):
                 'label': None, 
                 '글꼴': None, 
                 '범례위치': None,
-                'marker': {'종류': None, '색': None, '크기': None, '투명도': None},
+                'marker': {'문양': None, '색': None, '크기': None, '투명도': None},
                 'line': {'종류': None, '색': None, '굵기': None, '너비': None, '투명도': None},
                 'x축': {'이름': None, '라벨': None, '색': None, '글꼴': None, '크기': None, '눈금': None},
                 'y축': {'이름': None, '라벨': None, '색': None, '글꼴': None, '크기': None, '눈금': None},
@@ -303,7 +303,7 @@ class Executor(Transformer):
             
             elif obj_type_lark == "MARKER_KEYWORD":
                 target_object_dict = current_graph_data['옵션']['marker']
-                if prop_key_type_lark == "SET_TYPE_KEYWORD": target_key_in_dict = "종류"
+                if prop_key_type_lark == "SET_TYPE_KEYWORD": target_key_in_dict = "문양"
                 elif prop_key_type_lark == "SET_COLOR_KEYWORD": target_key_in_dict = "색"
                 elif prop_key_type_lark == "SIZE_KEYWORD": target_key_in_dict = "크기"
                 elif prop_key_type_lark == "ALPHA_KEYWORD": target_key_in_dict = "투명도"
