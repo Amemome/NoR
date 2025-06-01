@@ -118,12 +118,15 @@ class graph:
             self.set_axis(option['y축'], 'y')
 
     def apply_figure_settings(self, 출력옵션: dict):
+        facecolor = self.get_color(출력옵션.get('배경색', 'white'))
+        inner_color = self.get_color(출력옵션.get('내부 배경색', 'white'))
+
         fig, ax = plt.subplots(
             figsize=tuple(출력옵션.get('그래프 크기', (6, 4))),
             dpi=출력옵션.get('해상도', 100),
-            facecolor=출력옵션.get('배경색', 'white')
+            facecolor=facecolor
         )
-        ax.set_facecolor(출력옵션.get('내부 배경색', 'white'))
+        ax.set_facecolor(inner_color)
         return ax
 
     def apply_common_decorations(self, option: dict, 출력옵션: dict):
