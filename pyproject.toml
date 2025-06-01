@@ -6,4 +6,5 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "lark>=1.2.2",
+    "matplotlib>=3.10.3",
 ]
