@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useContext, useEffect } from "react";
 import { ThemeContext } from "./ThemeContext"; 
 
 const defaultCode = `그래프생성 "2024년 월별 매출 분석"
@@ -17,6 +17,18 @@ y축은 "매출 (단위: 백만원)"
 function CodeEditor({ value, onChange, placeholder, error }) {
   const { dark } = useContext(ThemeContext);
   const lines = (value || defaultCode).split('\n');
+
+  useEffect(() => {
+    window.onExampleSelect = (code) => {
+      if (onChange) {
+        onChange(code);
+      }
+    };
+
+    return () => {
+      window.onExampleSelect = null;
+    };
+  }, [onChange]);
 
   const backgroundColor = dark ? "#181c24" : "#ffffff";
   const textColor = dark ? "#e6e6e6" : "#1e1e1e";

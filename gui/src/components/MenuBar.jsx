@@ -1,7 +1,46 @@
 import React, { useContext } from "react";
-import { Button, Tooltip, Space } from "antd";
+import { Button, Tooltip, Space, Dropdown } from "antd";
 import { PlusOutlined, FileSearchOutlined, ExportOutlined, AppstoreOutlined } from "@ant-design/icons";
 import { ThemeContext } from "./ThemeContext";
+
+const exampleCommands = {
+  "막대 그래프": `그래프생성 "2024년 월별 매출 분석"
+제목은 "2024년 월별 매출 변화 추이"
+x축은 "월"
+y축은 "매출 (단위: 백만원)"
+종류는 "막대"
+색상은 "파랑"
+글꼴은 "나눔고딕"
+굵기는 3
+크기는 800, 600
+범례는 "오른쪽 위"
+저장은 "매출분석.png"
+그리기`,
+  "선 그래프": `그래프생성 "주간 온도 변화"
+제목은 "일주일간 온도 변화 추이"
+x축은 "요일"
+y축은 "온도 (°C)"
+종류는 "선"
+색상은 "빨강"
+글꼴은 "나눔고딕"
+굵기는 2
+크기는 800, 600
+범례는 "오른쪽 위"
+저장은 "온도분석.png"
+그리기`,
+  "산점도": `그래프생성 "키와 몸무게 상관관계"
+제목은 "키와 몸무게의 상관관계 분석"
+x축은 "키 (cm)"
+y축은 "몸무게 (kg)"
+종류는 "산점도"
+색상은 "초록"
+글꼴은 "나눔고딕"
+굵기는 2
+크기는 800, 600
+범례는 "오른쪽 위"
+저장은 "상관관계분석.png"
+그리기`
+};
 
 const menuItems = [
   {
@@ -13,6 +52,16 @@ const menuItems = [
     icon: <FileSearchOutlined />,
     label: "예시",
     tooltip: "예시 명령어를 불러옵니다",
+    isDropdown: true,
+    items: Object.keys(exampleCommands).map(key => ({
+      key,
+      label: key,
+      onClick: () => {
+        if (window.onExampleSelect) {
+          window.onExampleSelect(exampleCommands[key]);
+        }
+      }
+    }))
   },
   {
     icon: <ExportOutlined />,
@@ -36,36 +85,62 @@ function MenuBar() {
     transition: "all 0.18s cubic-bezier(.4,1.3,.6,1)",
     background: "none",
   };
+
+  const renderButton = (item) => {
+    const handleClick = item.label === "새 창"
+      ? () => window.open(window.location.origin + "/editor", "_blank", "noopener,noreferrer")
+      : undefined;
+
+    const button = (
+      <Button
+        type="text"
+        icon={item.icon}
+        size="large"
+        style={buttonStyle}
+        onClick={handleClick}
+        onMouseOver={e => {
+          e.currentTarget.style.color = dark ? "#38bdf8" : "#1677ff";
+          e.currentTarget.style.transform = "scale(1.1)";
+          e.currentTarget.style.background = dark ? "#232733" : "#f0f6ff";
+        }}
+        onMouseOut={e => {
+          e.currentTarget.style.color = dark ? "#e6e6e6" : "#232733";
+          e.currentTarget.style.transform = "scale(1)";
+          e.currentTarget.style.background = "none";
+        }}
+        onMouseDown={e => {
+          e.currentTarget.style.transform = "scale(0.95)";
+        }}
+        onMouseUp={e => {
+          e.currentTarget.style.transform = "scale(1.1)";
+        }}
+      >
+        {item.label}
+      </Button>
+    );
+
+    if (item.isDropdown) {
+      return (
+        <Dropdown
+          menu={{ items: item.items }}
+          placement="bottom"
+          key={item.label}
+        >
+          {button}
+        </Dropdown>
+      );
+    }
+
+    return (
+      <Tooltip title={item.tooltip} key={item.label} placement="bottom">
+        {button}
+      </Tooltip>
+    );
+  };
+
   return (
     <Space size="large">
-      {menuItems.map((item) => (
-        <Tooltip title={item.tooltip} key={item.label} placement="bottom">
-          <Button
-            type="text"
-            icon={item.icon}
-            size="large"
-            style={buttonStyle}
-            onMouseOver={e => {
-              e.currentTarget.style.color = dark ? "#38bdf8" : "#1677ff";
-              e.currentTarget.style.transform = "scale(1.1)";
-              e.currentTarget.style.background = dark ? "#232733" : "#f0f6ff";
-            }}
-            onMouseOut={e => {
-              e.currentTarget.style.color = dark ? "#e6e6e6" : "#232733";
-              e.currentTarget.style.transform = "scale(1)";
-              e.currentTarget.style.background = "none";
-            }}
-            onMouseDown={e => {
-              e.currentTarget.style.transform = "scale(0.95)";
-            }}
-            onMouseUp={e => {
-              e.currentTarget.style.transform = "scale(1.1)";
-            }}
-          >
-            {item.label}
-          </Button>
-        </Tooltip>
-      ))}
+      {menuItems.map(renderButton)}
     </Space>
   );
 }
