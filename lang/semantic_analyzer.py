@@ -54,6 +54,7 @@ class SemanticAnalyzer(Visitor):
 
         first_element_type = None           # 벡터의 첫 번째 요소 타입 저장
         first_element_token_for_error = None  # 첫 번째 요소의 위치 정보 (에러 메시지용)
+        
         for i, element_node in enumerate(element_nodes):
             current_element_type = self._get_element_type(element_node)
                 

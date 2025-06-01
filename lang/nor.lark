@@ -82,19 +82,6 @@ assign_operator: "은" | "는" | "=" | "<-"
 // 어느 객체의 속성에 접근할 것인지 지정해주는 연산자.
 access_operator: "의" | "."
 
-// 다양한 속성을 나타내는 키워드들 (기존 property_keyword, graph_property_keyword, common_property_keyword 통합)
-property_key: SET_TITLE_KEYWORD
-            | SET_TYPE_KEYWORD      // 그래프 종류 "종류는 '막대'"
-            | SET_LEGEND_KEYWORD
-            | SET_FONT_KEYWORD
-            | SET_RATIO_KEYWORD
-            | SET_BACKGROUND_KEYWORD
-            | SIZE_KEYWORD
-            | SET_COLOR_KEYWORD
-            | SET_THICKNESS_KEYWORD
-            | SET_NAME_KEYWORD     
-            // 단일 속성 지정에 대해서 올 수 있는 지정자들.
-
 // ======================================================================
 // Terminals: Keywords (터미널: 키워드)
 // ======================================================================
