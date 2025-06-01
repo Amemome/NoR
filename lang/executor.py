@@ -2,6 +2,7 @@ import copy
 from lark import Token, Transformer, Tree, v_args
 from error import RunningError
 import csv
+from graph.graph import graph
 
 class Executor(Transformer):
     def __init__(self, debug_mode=False):
@@ -10,6 +11,7 @@ class Executor(Transformer):
         self.graph_context = dict()
         self.errors = []
         self.debug_mode = debug_mode # 실행중인 문장을 출력해주는 모드.
+        self.g = graph()
 
     def _debug_print(self, message): # <-- 추가: 디버그 출력 헬퍼 메서드
         if self.debug_mode:
@@ -58,19 +60,96 @@ class Executor(Transformer):
         err = RunningError(line, column, message)
         self.errors.append(err)
         self._debug_print(f"런타임 오류 추가: {err}")
-
-    @v_args(inline=True) 
-    def atom(self, value):
-        if value.type == 'NUMBER':
-            return float(value.value)
-        elif value.type == 'STRING': 
-            return value.value.strip("'\"")
-        elif value.type == 'BOOLEAN':
-            val_str = value.value.lower()
-            return val_str in ["true", "참"]
-
-        return value.value
+    # atom
+    @v_args(inline=True)
+    def atom(self, value): 
+        return value 
     
+    # 기본 타입 inlining
+    @v_args(inline=True)
+    def STRING(self, value):
+        return value.value.strip("'\"")
+    @v_args(inline=True)
+    def NUMBER(self, value):
+        return float(value.value)
+    @v_args(inline=True)
+    def TRUE(self, token):
+        return True
+    @v_args(inline=True)
+    def FALSE(self, token):
+        return False
+    # 그래프 타입 에 들어갈 수 있는 값들 정형화
+    @v_args(inline=True)
+    def GRAPH_TYPE_VALUE(self, value):
+        return value.value
+        
+    @v_args(inline=True)
+    def LINE_PLOT(self, value):
+        return "선그래프"
+    @v_args(inline=True)
+    def BAR_PLOT(self, value):
+        return "막대그래프"
+    @v_args(inline=True)
+    def SCATTER_PLOT(self, value):
+        return "산점도그래프"
+    
+    # 색깔 정형화
+    @v_args(inline=True)
+    def BLACK_COLOR(self, token): 
+        self._debug_print(f"BLACK_COLOR 메소드 호출됨. token.value: '{token.value}'") 
+        return "black"
+    @v_args(inline=True)
+    def BLUE_COLOR(self, token): return "blue"
+    @v_args(inline=True)
+    def BROWN_COLOR(self, token): return "brown"
+    @v_args(inline=True)
+    def GRAY_COLOR(self, token): return "gray"
+    @v_args(inline=True)
+    def GREEN_COLOR(self, token): return "green"
+    @v_args(inline=True)
+    def ORANGE_COLOR(self, token): return "orange"
+    @v_args(inline=True)
+    def PINK_COLOR(self, token): return "pink"
+    @v_args(inline=True)
+    def PURPLE_COLOR(self, token): return "purple"
+    @v_args(inline=True)
+    def RED_COLOR(self, token): return "red"
+    @v_args(inline=True)
+    def WHITE_COLOR(self, token): return "white"
+    @v_args(inline=True)
+    def YELLOW_COLOR(self, token): return "yellow"
+    @v_args(inline=True)
+    def COLOR_VALUE(self, token):
+        # 디버그 메시지를 수정하여 children과 반환될 값을 명확히 확인합니다.
+        self._debug_print(f"COLOR_VALUE 메소드 호출됨. children: {token}, 반환될 값: '{token.type}' {token.value}")
+        # 이 문자열 값을 반환해야 property_assignment_statement에서 올바르게 사용됩니다.
+        return token
+    
+    # 마커 종류 정형화
+    @v_args(inline=True)
+    def CIRCLE_MARKER(self, token): return "o"
+    @v_args(inline=True)
+    def SQUARE_MARKER(self, token): return "s"
+    @v_args(inline=True)
+    def DOT_MARKER(self, token): return "."
+    @v_args(inline=True)
+    def X_MARKER(self, token): return "x"
+    @v_args(inline=True)
+    def UP_TRIANGLE_MARKER(self, token): return "^"
+    @v_args(inline=True)
+    def DOWN_TRIANGLE_MARKER(self, token): return "v"
+    @v_args(inline=True)
+    def LEFT_TRIANGLE_MARKER(self, token): return "<"
+    @v_args(inline=True)
+    def RIGHT_TRIANGLE_MARKER(self, token): return ">"
+    @v_args(inline=True)
+    def STAR_MARKER(self, token): return "*"
+
+    @v_args(inline=True)
+    def MARKER_SHAPE_VALUE(self, value): # value는 이미 "o", "s" 등 문자열
+        self._debug_print(f"MARKER_SHAPE_VALUE 규칙: 전달받은 마커 값 '{value}'")
+        return value.value
+
     def vector(self, items):
         return items[0]
     
@@ -282,10 +361,10 @@ class Executor(Transformer):
 
     def draw_statement(self, items):
         current_graph_to_draw = self._get_current_graph_data_dict()
-        print(current_graph_to_draw)
-
-        if current_graph_to_draw:
-            # 실제 함수 호출
+        option = remove_none_values_from_dict(current_graph_to_draw)
+        print(option)
+        if option:
+            self.g.draw(option)
             pass
         else:
             self._add_error("그래프 그릴 수 없는 상황")
