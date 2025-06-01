@@ -13,9 +13,9 @@ GRAPH_TYPES = {
 
 # COLOR_VALUE
 COLOR_VALUES = {
-    "검정", "black", "파랑", "blue", "갈색", "brown", "회색", "gray", "grey",
-    "초록", "green", "주황", "orange", "분홍", "pink", "보라", "purple",
-    "빨강", "red", "흰색", "white", "노랑", "yellow"
+    "검정", "black","파랑", "blue","갈색", "brown","회색", "gray", "grey","초록", "green","주황", "orange","분홍", "pink","보라", "purple","빨강", "red",
+"흰색", "white",
+"노랑", "yellow",
 }
 
 # MARKER_SHAPE_VALUE (grammar has more specific terminals like CIRCLE_MARKER)

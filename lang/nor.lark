@@ -28,8 +28,8 @@ property_assignment_statement:  LINE_KEYWORD access_operator SET_TYPE_KEYWORD as
   | (object_selector access_operator)? SET_LABEL_KEYWORD assign_operator STRING // '라벨'은 문자열만
   | (object_selector access_operator)? SET_LEGEND_KEYWORD assign_operator LEGEND_POSITION_VALUE // '범례위치'는 정해진 위치만
   | (object_selector access_operator)? SET_FONT_KEYWORD assign_operator STRING // '글꼴'은 문자열만
-  | (object_selector access_operator)? SET_BACKGROUND_KEYWORD assign_operator COLOR_VALUE // '배경색'은 정해진 색상만
-  | (object_selector access_operator)? SET_COLOR_KEYWORD assign_operator COLOR_VALUE // '색'은 정해진 색상만
+  | (object_selector access_operator)? SET_BACKGROUND_KEYWORD assign_operator STRING // '배경색'은 정해진 색상만
+  | (object_selector access_operator)? SET_COLOR_KEYWORD assign_operator STRING // '색'은 정해진 색상만
   | (object_selector access_operator)? SET_THICKNESS_KEYWORD assign_operator NUMBER // '굵기'는 숫자만
   | (object_selector access_operator)? SET_NAME_KEYWORD assign_operator STRING // '이름'은 문자열만
   | (object_selector access_operator)? ALPHA_KEYWORD assign_operator NUMBER // '투명도'는 숫자만
@@ -37,7 +37,7 @@ property_assignment_statement:  LINE_KEYWORD access_operator SET_TYPE_KEYWORD as
   | (object_selector access_operator)? TICKS_KEYWORD assign_operator vector // '눈금'은 벡터만
   | (object_selector access_operator)? GRAPH_SIZE_KEYWORD assign_operator vector // '그래프 크기'는 벡터만
   | (object_selector access_operator)? RESOLUTION_KEYWORD assign_operator NUMBER // '해상도'는 숫자만
-  | (object_selector access_operator)? INNER_BACKGROUND_COLOR_KEYWORD assign_operator COLOR_VALUE // '내부 배경색'은 정해진 색상만
+  | (object_selector access_operator)? INNER_BACKGROUND_COLOR_KEYWORD assign_operator STRING // '내부 배경색'은 정해진 색상만
   | (object_selector access_operator)? SAVE_FILE_KEYWORD assign_operator STRING // '파일로 저장'은 문자열만
 
 // 복합 속성 지정 여러가지의 속성을 한 문장에 할당
@@ -149,21 +149,6 @@ LINE_PLOT: "선그래프" | "선" | "line" | "line plot"
 BAR_PLOT: "막대그래프" | "막대" | "bar" | "bar plot"
 SCATTER_PLOT: "산점도그래프" | "산점도" | "scatter" | "scatter plot"
 
-// 색상 값
-COLOR_VALUE: BLACK_COLOR | BLUE_COLOR | BROWN_COLOR | GRAY_COLOR | GREEN_COLOR | ORANGE_COLOR | PINK_COLOR | PURPLE_COLOR | RED_COLOR | WHITE_COLOR | YELLOW_COLOR
-
-BLACK_COLOR: "검정" | "black"
-BLUE_COLOR: "파랑" | "blue"
-BROWN_COLOR: "갈색" | "brown"
-GRAY_COLOR: "회색" | "gray" | "grey"
-GREEN_COLOR: "초록" | "green"
-ORANGE_COLOR: "주황" | "orange"
-PINK_COLOR: "분홍" | "pink"
-PURPLE_COLOR: "보라" | "purple"
-RED_COLOR: "빨강" | "red"
-WHITE_COLOR: "흰색" | "white"
-YELLOW_COLOR: "노랑" | "yellow"
-
 // 마커 문양 값
 MARKER_SHAPE_VALUE: CIRCLE_MARKER | SQUARE_MARKER | DOT_MARKER | X_MARKER | UP_TRIANGLE_MARKER | DOWN_TRIANGLE_MARKER | LEFT_TRIANGLE_MARKER | RIGHT_TRIANGLE_MARKER | STAR_MARKER
 
@@ -175,7 +160,6 @@ UP_TRIANGLE_MARKER: "삼각형" | "세모" | "^" | "삼각형 위" | "위쪽 삼
 DOWN_TRIANGLE_MARKER: "삼각형 아래" | "아래쪽 삼각형" | "v" 
 LEFT_TRIANGLE_MARKER: "삼각형 왼쪽" | "왼쪽 삼각형" | "<"
 RIGHT_TRIANGLE_MARKER: "삼각형 오른쪽" | "오른쪽 삼각형" | ">"
-
 STAR_MARKER: "별" | "*" | "별표"
 
 // 선 스타일 값
