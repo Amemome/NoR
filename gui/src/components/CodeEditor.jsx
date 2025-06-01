@@ -25,10 +25,41 @@ function CodeEditor({ value, onChange, placeholder, error }) {
       }
     };
 
+    window.onExport = async () => {
+      try {
+        // 현재 코드를 실행하여 그래프 생성
+        const response = await fetch('/api/execute', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ code: value || defaultCode }),
+        });
+
+        if (!response.ok) {
+          throw new Error('그래프 생성에 실패했습니다.');
+        }
+
+        const result = await response.json();
+        
+        // 생성된 이미지 URL을 다운로드
+        const link = document.createElement('a');
+        link.href = result.imageUrl;
+        link.download = 'graph.png';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      } catch (error) {
+        console.error('내보내기 실패:', error);
+        alert('그래프 내보내기에 실패했습니다.');
+      }
+    };
+
     return () => {
       window.onExampleSelect = null;
+      window.onExport = null;
     };
-  }, [onChange]);
+  }, [onChange, value]);
 
   const backgroundColor = dark ? "#181c24" : "#ffffff";
   const textColor = dark ? "#e6e6e6" : "#1e1e1e";

@@ -67,6 +67,11 @@ const menuItems = [
     icon: <ExportOutlined />,
     label: "내보내기",
     tooltip: "결과를 이미지로 저장합니다",
+    onClick: () => {
+      if (window.onExport) {
+        window.onExport();
+      }
+    }
   },
   {
     icon: <AppstoreOutlined />,
@@ -97,7 +102,7 @@ function MenuBar() {
         icon={item.icon}
         size="large"
         style={buttonStyle}
-        onClick={handleClick}
+        onClick={item.onClick}
         onMouseOver={e => {
           e.currentTarget.style.color = dark ? "#38bdf8" : "#1677ff";
           e.currentTarget.style.transform = "scale(1.1)";
