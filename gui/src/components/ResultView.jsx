@@ -2,7 +2,7 @@ import React from "react";
 import DefaultGraphSVG from "./DefaultGraphSVG";
 
 function ResultView({ result }) {
-  if (!result) {
+  if (!result || !result.imageUrl) {
     return (
       <div style={styles.container}>
         <DefaultGraphSVG width={240} height={160} />
@@ -16,19 +16,23 @@ function ResultView({ result }) {
       <div style={styles.graphContainer}>
         <img 
           src={`http://localhost:8000/static/${result.filename}`} 
-          alt={result.title}
+          alt={result.title || 그래프}
           style={styles.graph}
         />
       </div>
       <div style={styles.infoContainer}>
-        <h3 style={styles.title}>{result.title}</h3>
+        <h3 style={styles.title}>{result.title || "그래프"}</h3>
         <div style={styles.details}>
-          <p><strong>X축:</strong> {result.xlabel}</p>
-          <p><strong>Y축:</strong> {result.ylabel}</p>
-          <p><strong>데이터:</strong></p>
-          <pre style={styles.data}>
-            {JSON.stringify(result.data, null, 2)}
-          </pre>
+          {result.xlabel && <p><strong>X축:</strong> {result.xlabel}</p>}
+          {result.ylabel && <p><strong>Y축:</strong> {result.ylabel}</p>}
+          {result.data && (
+            <>
+              <p><strong>데이터:</strong></p>
+              <pre style={styles.data}>
+                {JSON.stringify(result.data, null, 2)}
+              </pre>
+            </>
+          )}
         </div>
       </div>
     </div>

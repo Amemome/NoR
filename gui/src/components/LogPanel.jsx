@@ -21,18 +21,25 @@ const logs = [
 
 function LogPanel({ log }) {
   if (!log || log.length === 0) {
-    return <div style={{ color: '#888', padding: '1rem' }}>아직 로그가 없습니다. 명령어를 실행해보세요!</div>;
+    return <div style={{ color: '#888', padding: '1rem', fontSize: '1.1rem' }}>아직 로그가 없습니다. 명령어를 실행해보세요!</div>;
   }
   return (
     <List
-      size="small"
+      size="large"
       dataSource={log}
       renderItem={item => (
-        <List.Item>
-          <Tag color={item.type === "error" ? "red" : item.type === "success" ? "green" : "blue"}>
+        <List.Item style={{ padding: '0.8rem 1rem' }}>
+          <Tag color={item.type === "error" ? "red" : item.type === "success" ? "green" : "blue"} style={{ fontSize: '1rem', padding: '0.2rem 0.6rem' }}>
             {item.source}
           </Tag>
-          <Typography.Text type={item.type === "error" ? "danger" : item.type === "success" ? "success" : undefined}>
+          <Typography.Text 
+            type={item.type === "error" ? "danger" : item.type === "success" ? "success" : undefined}
+            style={{ 
+              fontSize: '1.1rem',
+              marginLeft: '0.8rem',
+              fontFamily: "'Fira Mono', 'Consolas', 'Menlo', 'monospace', 'Noto Sans KR', sans-serif"
+            }}
+          >
             {item.message}
           </Typography.Text>
         </List.Item>

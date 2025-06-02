@@ -7,7 +7,7 @@ import ThemeToggle from "../components/ThemeToggle";
 import NoRLogo from "../components/NoRLogo";
 import "../App.css";
 import { ThemeContext } from "../components/ThemeContext";
-import { executeCode } from "../services/api";
+import { executeCode, exportGraph } from "../services/api";
 import { useNavigate } from "react-router-dom";
 
 const { Header, Content } = Layout;
@@ -23,26 +23,29 @@ function Editor() {
 
   // 실행 함수
   const handleExecute = async () => {
+    if (!code.trim()) {
+      message.warning("실행할 코드를 입력해주세요.");
+      return;
+    }
+
     setLoading(true);
     setError(null);
     setLog([]);
+
     try {
-      const response = await executeCode(code);
-      if (response.success) {
-        setResult(response.result);
-        setLog([{ source: "parser", type: "success", message: "파싱 성공! 그래프를 그릴 준비가 완료되었습니다." }]);
-        message.success("코드가 성공적으로 실행되었습니다.");
+      const result = await executeCode(code);
+      console.log('API 응답:', result); // 디버깅용 로그
+      
+      if (result.error) {
+        setError(result.error);
+        setLog(result.log || []);
       } else {
-        setError(Array.isArray(response.errors) ? response.errors.join('\n') : (response.errors || "알 수 없는 오류"));
-        setResult(null);
-        setLog([{ source: "compileNorEngine", type: "error", message: Array.isArray(response.errors) ? response.errors.join('\n') : (response.errors || "알 수 없는 오류") }]);
-        message.error("코드 실행 중 오류가 발생했습니다.");
+        setResult(result);
+        setLog(result.log || []);
       }
-    } catch (err) {
-      setError(err.message);
-      setResult(null);
-      setLog([{ source: "network", type: "error", message: err.message }]);
-      message.error("서버 연결 중 오류가 발생했습니다.");
+    } catch (error) {
+      console.error('실행 오류:', error); // 디버깅용 로그
+      setError(error.message || '코드 실행 중 오류가 발생했습니다.');
     } finally {
       setLoading(false);
     }
@@ -55,6 +58,35 @@ function Editor() {
     setError(null);
     setLog([]);
   };
+
+  // 내보내기 함수
+  const handleExport = async () => {
+    if (!code.trim()) {
+      message.warning("내보낼 코드를 입력해주세요.");
+      return;
+    }
+
+    try {
+      const imageUrl = await exportGraph(code);
+      const link = document.createElement('a');
+      link.href = imageUrl;
+      link.download = 'graph.png';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      message.success("그래프가 성공적으로 저장되었습니다.");
+    } catch (error) {
+      message.error("그래프 저장 중 오류가 발생했습니다.");
+    }
+  };
+
+  // window.onExport 함수 설정
+  React.useEffect(() => {
+    window.onExport = handleExport;
+    return () => {
+      window.onExport = null;
+    };
+  }, [code]);
 
   return (
     <ConfigProvider
