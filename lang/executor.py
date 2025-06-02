@@ -5,13 +5,14 @@ import csv
 from graph.graph import graph
 
 class Executor(Transformer):
-    def __init__(self, debug_mode=False):
+    def __init__(self, debug_mode=False, is_server=False):
         super().__init__()
         self.graph_name = None # 현재 가리키고 있는 그래프 객체
         self.graph_context = dict()
         self.errors = []
         self.debug_mode = debug_mode # 실행중인 문장을 출력해주는 모드.
         self.g = graph()
+        self.is_server = is_server
 
     def _debug_print(self, message): # <-- 추가: 디버그 출력 헬퍼 메서드
         if self.debug_mode:
@@ -429,7 +430,11 @@ class Executor(Transformer):
         option = remove_none_values_from_dict(current_graph_to_draw)
         print(option)
         if option:
-            self.g.draw(option)
+            if self.is_server:
+                self.g.save(option)
+            else:
+                self.g.draw(option)
+            
             pass
         else:
             self._add_error("그래프 그릴 수 없는 상황")

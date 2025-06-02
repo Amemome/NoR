@@ -2,6 +2,59 @@ from lark import Lark
 from lark.exceptions import LarkError, UnexpectedToken, UnexpectedCharacters, UnexpectedEOF
 from semantic_analyzer import SemanticAnalyzer;
 from executor import Executor;
+from nor_grammar import nor_grammar
+
+class NoRCLI:
+    def __init__(self, debug_mode):
+        self.grammar = nor_grammar
+        self.debug_mode = debug_mode
+        self.parser = None
+        self.script = ""
+
+    def set_script(self, script):
+        self.script = script
+
+    def start(self):
+        self.parser = Lark(grammar=self.grammar, propagate_positions=True)
+        parse_tree = None
+        all_errors = []
+
+        parse_tree = self.parser.parse(self.script)
+        analyzer = SemanticAnalyzer()
+        try:
+            analyzer.visit(parse_tree)
+            if analyzer.errors:
+                for err_msg in analyzer.errors: 
+                    all_errors.append(f"SemanticError: {str(err_msg)}")
+            if self.debug_mode and not analyzer.errors:
+                 print("\nNo semantic errors found.")
+            elif self.debug_mode and analyzer.errors:
+                 print(f"\nSemantic Errors Found: {len(analyzer.errors)}")
+        except Exception as e:
+            print(e)
+
+        executor = Executor(debug_mode=self.debug_mode)
+        try:
+            execution_result_data = executor.transform(parse_tree)
+            # 만약 Executor가 transform/visit 후 self.errors를 채운다면:
+            if executor.errors: # Executor가 self.errors 리스트를 가진다고 가정
+                for err_msg in executor.errors:
+                    all_errors.append(f"RuntimeError: {str(err_msg)}")
+            
+            if self.debug_mode and not executor.errors:
+                print("\nNo runtime errors found (from executor internal error list).")
+            elif self.debug_mode and executor.errors:
+                print(f"\nRuntime Errors Found (from executor internal error list): {len(executor.errors)}")
+
+        except Exception as e: # Executor.transform() 중 예기치 않은 오류
+            all_errors.append({"type": "InternalRuntimeError", "message": f"실행 중 내부 오류: {e}"})
+            return execution_result_data, all_errors # 부분 결과와 함께 오류 반환 가능
+        
+
+            
+
+
+class NoRGUIServer:
 
 grammar_file_path = 'nor.lark'
 grammar = None
