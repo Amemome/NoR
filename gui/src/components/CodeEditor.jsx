@@ -138,9 +138,8 @@ function CodeEditor({ value, onChange, placeholder, error }) {
       colors: {
         'editor.background': '#181c24',
         'editor.foreground': '#e6e6e6',
-        'editor.lineHighlightBackground': '#232733',
-        'editorLineNumber.foreground': '#888',
-        'editorCursor.foreground': '#38bdf8'
+        'focusBorder': '#181c24',
+        'editor.focusedBorder': '#181c24',
       }
     });
 
@@ -158,9 +157,8 @@ function CodeEditor({ value, onChange, placeholder, error }) {
       colors: {
         'editor.background': '#ffffff',
         'editor.foreground': '#232733',
-        'editor.lineHighlightBackground': '#f0f6ff',
-        'editorLineNumber.foreground': '#999',
-        'editorCursor.foreground': '#1677ff'
+        'focusBorder': '#ffffff',
+        'editor.focusedBorder': '#ffffff',
       }
     });
   };
