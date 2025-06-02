@@ -6,7 +6,7 @@ function About() {
   const navigate = useNavigate();
   const team = [
     { name: "이운길", role: "Graph 파트", desc: "matplotlib으로 그래프 처리" },
-    { name: "최현경", role: "GUI 파트", desc: "UI/UX, React 개발" },
+    { name: "최현경", role: "GUI 파트", desc: "UI/UX, React 개발 및 연동" },
     { name: "류지성", role: "Language 파트", desc: "렉서, 파서, 데이터 처리" },
   ];
 
@@ -173,11 +173,14 @@ function About() {
           <h2 style={styles.cardTitle}>기술 스택</h2>
           <div style={styles.techStack}>
             {[
-              "Python", 
-              "PySimpleGUI", 
-              "Matplotlib", 
-              "Seaborn", 
-              "Lark-parser"
+              "Python",
+              "Lark (파서/인터프리터)",
+              "Matplotlib",
+              "Seaborn",
+              "React",
+              "Monaco Editor",
+              "Ant Design",
+              "Express (API 서버)"
             ].map((tech, i) => (
               <motion.div
                 key={tech}
@@ -192,6 +195,10 @@ function About() {
               </motion.div>
             ))}
           </div>
+          <div style={{ marginTop: '1.2rem', color: '#fff', opacity: 0.8, fontSize: '1rem' }}>
+            <b>폴더 구조:</b> lang(파서/인터프리터), graph(그래프 엔진), gui(웹 UI), examples(스크립트 예시), docs(문서)<br/>
+            <b>특징:</b> 한글 기반 DSL, 실시간 코드 실행, 자동완성, 그래프 이미지 저장, 직관적 UI
+          </div>
         </motion.div>
 
         {/* 오픈소스 */}
@@ -203,11 +210,11 @@ function About() {
         >
           <h2 style={styles.cardTitle}>오픈소스 프로젝트</h2>
           <p style={styles.cardText}>
-            NoR은 matplotlib, seaborn, Lark 등 자유로운 라이선스를 가진 오픈소스 라이브러리를 기반으로 개발되었으며,
-            PySimpleGUI는 LGPL 3.0을 따르므로 수정 시 해당 부분만 공개하면 전체 오픈소스 공개에 제약은 없습니다.
+            NoR은 matplotlib, seaborn, Lark, React, Monaco Editor 등 자유로운 라이선스를 가진 오픈소스 라이브러리를 기반으로 개발되었습니다.<br/>
+            누구나 자유롭게 사용, 수정, 배포할 수 있습니다.
           </p>
           <motion.a
-            href="https://github.com/your-repo"
+            href="https://github.com/Amemome/NoR"
             target="_blank"
             rel="noopener noreferrer"
             whileHover={{ scale: 1.05 }}
