@@ -8,6 +8,7 @@ import NoRLogo from "../components/NoRLogo";
 import "../App.css";
 import { ThemeContext } from "../components/ThemeContext";
 import { executeCode } from "../services/api";
+import { useNavigate } from 'react-router-dom';
 
 const { Header, Content } = Layout;
 
@@ -17,6 +18,7 @@ function Editor() {
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   // 실행 함수
   const handleExecute = async () => {
@@ -91,7 +93,9 @@ function Editor() {
           }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: 32 }}>
-            <NoRLogo size={48} />
+            <div className="logo-container" onClick={() => navigate("/")}>
+              <NoRLogo size={48} />
+            </div>
             <MenuBar />
           </div>
           <ThemeToggle />
