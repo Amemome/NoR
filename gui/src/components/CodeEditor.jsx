@@ -1,5 +1,6 @@
 import React, { useContext, useEffect } from "react";
-import { ThemeContext } from "./ThemeContext"; 
+import { ThemeContext } from "./ThemeContext";
+import Editor from "@monaco-editor/react";
 
 const defaultCode = `그래프생성 "2024년 월별 매출 분석"
 제목은 "2024년 월별 매출 변화 추이"
@@ -14,9 +15,65 @@ y축은 "매출 (단위: 백만원)"
 저장은 "매출분석.png"
 그리기`;
 
+// NoR 언어 문법 정의
+const norLanguageDefinition = {
+  defaultToken: '',
+  tokenPostfix: '.nor',
+  
+  keywords: [
+    // 복합 키워드 (띄어쓰기 포함)
+    'x축의 이름은', 'y축의 이름은', '그래프 크기는', '데이터는',
+    // 단일 키워드
+    '그래프생성', '제목은', 'x축은', 'y축은', '종류는', '색상은', '글꼴은', '굵기는', '크기는', '범례는', '저장은', '저장하기', '그리기',
+    '막대그래프', '선그래프', '산점도그래프', '막대', '선', '산점도',
+    '파랑', '빨강', '초록', '검정', '흰색', '노랑', '보라', '주황', '분홍', '갈색', '회색',
+    '실선', '점선', '파선', '점선파선',
+    '원', '사각형', '점', '엑스', '삼각형', '별',
+    '우상단', '좌상단', '우하단', '좌하단', '중앙'
+  ],
+
+  operators: ['은', '는', '의', '='],
+
+  symbols: /[=><!~?:&|+\-*\/\^]+/,
+
+  tokenizer: {
+    root: [
+      // 복합 키워드 (띄어쓰기 포함)
+      [/x축의 이름은|y축의 이름은|그래프 크기는|데이터는/, 'keyword'],
+      // 문자열
+      [/"[^"\\]*(\\.[^"\\]*)*"/, 'string'],
+      [/'[^'\\]*(\\.[^'\\]*)*'/, 'string'],
+      // 숫자
+      [/\d+/, 'number'],
+      // 키워드
+      [/[가-힣a-zA-Z]+/, { 
+        cases: {
+          '@keywords': 'keyword',
+          '@default': 'identifier'
+        }
+      }],
+      // 연산자
+      [/[은는의=]/, 'operator'],
+      // 공백
+      [/[ \t\r\n]+/, 'white'],
+      // 기타
+      [/./, 'text']
+    ]
+  }
+};
+
+// 자동완성(인텔리센스)용 주요 명령어/속성/값 목록
+const norCompletions = [
+  '그래프생성', '제목은', 'x축의 이름은', 'y축의 이름은', '종류는', '색상은', '글꼴은', '굵기는', '그래프 크기는', '범례는', '저장하기', '그리기', '데이터는',
+  '막대그래프', '선그래프', '산점도그래프', '막대', '선', '산점도',
+  '파랑', '빨강', '초록', '검정', '흰색', '노랑', '보라', '주황', '분홍', '갈색', '회색',
+  '실선', '점선', '파선', '점선파선',
+  '원', '사각형', '점', '엑스', '삼각형', '별',
+  '우상단', '좌상단', '우하단', '좌하단', '중앙'
+];
+
 function CodeEditor({ value, onChange, placeholder, error }) {
   const { dark } = useContext(ThemeContext);
-  const lines = (value || defaultCode).split('\n');
 
   useEffect(() => {
     window.onExampleSelect = (code) => {
@@ -27,7 +84,6 @@ function CodeEditor({ value, onChange, placeholder, error }) {
 
     window.onExport = async () => {
       try {
-        // 현재 코드를 실행하여 그래프 생성
         const response = await fetch('/api/execute', {
           method: 'POST',
           headers: {
@@ -42,7 +98,6 @@ function CodeEditor({ value, onChange, placeholder, error }) {
 
         const result = await response.json();
         
-        // 생성된 이미지 URL을 다운로드
         const link = document.createElement('a');
         link.href = result.imageUrl;
         link.download = 'graph.png';
@@ -61,77 +116,106 @@ function CodeEditor({ value, onChange, placeholder, error }) {
     };
   }, [onChange, value]);
 
-  const backgroundColor = dark ? "#181c24" : "#ffffff";
-  const textColor = dark ? "#e6e6e6" : "#1e1e1e";
-  const borderColor = dark ? "#232733" : "#ccc";
-  const shadowColor = dark ? "#0002" : "#ddd";
+  const handleEditorDidMount = (editor, monaco) => {
+    // NoR 언어 등록
+    monaco.languages.register({ id: 'nor' });
+    monaco.languages.setMonarchTokensProvider('nor', norLanguageDefinition);
 
-  const editorStyle = {
-    background: backgroundColor,
-    color: textColor,
-    fontSize: "1.08rem",
-    fontFamily: "'Fira Mono', 'Consolas', 'Menlo', 'monospace', 'Noto Sans KR', sans-serif",
-    border: `1.5px solid ${borderColor}`,
-    borderRadius: "10px",
-    padding: "1.1rem 1.2rem",
-    outline: "none",
-    width: "100%",
-    minHeight: 180,
-    boxShadow: `0 2px 8px ${shadowColor}`,
-    transition: "all 0.18s ease-in-out",
-    resize: "vertical",
-    lineHeight: 1.6,
-  };
+    // 인텔리센스(자동완성) 등록
+    monaco.languages.registerCompletionItemProvider('nor', {
+      triggerCharacters: [' ', '\n', ...'abcdefghijklmnopqrstuvwxyz가나다라마바사아자차카타파하'],
+      provideCompletionItems: (model, position) => {
+        const suggestions = norCompletions.map(word => ({
+          label: word,
+          kind: monaco.languages.CompletionItemKind.Keyword,
+          insertText: word,
+        }));
+        return { suggestions };
+      }
+    });
 
-  const lineNumberStyle = {
-    background: backgroundColor,
-    color: dark ? "#888" : "#999",
-    padding: "1.1rem 8px 1.1rem 0",
-    textAlign: "right",
-    margin: 0,
-    userSelect: "none",
-    fontSize: "1.08rem",
-    fontFamily: "'Fira Mono', 'Consolas', 'Menlo', 'monospace', 'Noto Sans KR', sans-serif",
-    lineHeight: 1.6,
+    // 테마 설정
+    monaco.editor.defineTheme('nor-dark', {
+      base: 'vs-dark',
+      inherit: true,
+      rules: [
+        { token: 'keyword', foreground: '#38bdf8', fontStyle: 'bold' },
+        { token: 'string', foreground: '#f472b6' },
+        { token: 'number', foreground: '#facc15' },
+        { token: 'operator', foreground: '#60a5fa' },
+        { token: 'identifier', foreground: '#e6e6e6' },
+        { token: 'text', foreground: '#e6e6e6' }
+      ],
+      colors: {
+        'editor.background': '#181c24',
+        'editor.foreground': '#e6e6e6',
+        'editor.lineHighlightBackground': '#232733',
+        'editorLineNumber.foreground': '#888',
+        'editorCursor.foreground': '#38bdf8'
+      }
+    });
+
+    monaco.editor.defineTheme('nor-light', {
+      base: 'vs',
+      inherit: true,
+      rules: [
+        { token: 'keyword', foreground: '#1677ff', fontStyle: 'bold' },
+        { token: 'string', foreground: '#eb2f96' },
+        { token: 'number', foreground: '#faad14' },
+        { token: 'operator', foreground: '#1890ff' },
+        { token: 'identifier', foreground: '#232733' },
+        { token: 'text', foreground: '#232733' }
+      ],
+      colors: {
+        'editor.background': '#ffffff',
+        'editor.foreground': '#232733',
+        'editor.lineHighlightBackground': '#f0f6ff',
+        'editorLineNumber.foreground': '#999',
+        'editorCursor.foreground': '#1677ff'
+      }
+    });
   };
 
   return (
-    <div style={{ display: "flex", background: backgroundColor, height: "100%" }}>
-      <pre style={lineNumberStyle}>
-        {lines.map((_, i) => (
-          <div key={i} style={{ height: "1.6em" }}>{i + 1}</div>
-        ))}
-      </pre>
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-        <textarea
-          style={{ ...editorStyle, flex: 1, minHeight: 0 }}
-          value={value || defaultCode}
-          onChange={e => onChange && onChange(e.target.value)}
-          placeholder={placeholder}
-          spellCheck={false}
-          onFocus={e => {
-            e.currentTarget.style.borderColor = "#38bdf8";
-            e.currentTarget.style.boxShadow = "0 4px 16px #38bdf855";
-          }}
-          onBlur={e => {
-            e.currentTarget.style.borderColor = borderColor;
-            e.currentTarget.style.boxShadow = `0 2px 8px ${shadowColor}`;
-          }}
-          onMouseOver={e => {
-            e.currentTarget.style.borderColor = "#60a5fa";
-          }}
-          onMouseOut={e => {
-            if (document.activeElement !== e.currentTarget) {
-              e.currentTarget.style.borderColor = borderColor;
-            }
-          }}
-        />
-        {error && (
-          <div style={{ color: 'red', minHeight: 24, marginTop: 4 }}>
-            {Array.isArray(error) ? error.join('\n') : error}
-          </div>
-        )}
-      </div>
+    <div style={{ height: "100%", display: "flex", flexDirection: "column" }}>
+      <Editor
+        height="100%"
+        language="nor"
+        value={value || defaultCode}
+        onChange={onChange}
+        theme={dark ? "nor-dark" : "nor-light"}
+        options={{
+          fontSize: 16,
+          fontFamily: "'Fira Mono', 'Consolas', 'Menlo', 'monospace', 'Noto Sans KR', sans-serif",
+          minimap: { enabled: false },
+          scrollBeyondLastLine: false,
+          lineNumbers: "on",
+          roundedSelection: false,
+          scrollbar: {
+            vertical: 'visible',
+            horizontal: 'visible',
+            useShadows: false,
+            verticalScrollbarSize: 8,
+            horizontalScrollbarSize: 8
+          }
+        }}
+        onMount={(editor, monaco) => {
+          handleEditorDidMount(editor, monaco);
+          monaco.editor.setTheme(dark ? 'nor-dark' : 'nor-light');
+        }}
+      />
+      {error && (
+        <div style={{ 
+          color: 'red', 
+          minHeight: 24, 
+          marginTop: 4,
+          padding: '0.5rem 1rem',
+          background: dark ? '#232733' : '#fff',
+          borderTop: '1px solid #ff4d4f'
+        }}>
+          {Array.isArray(error) ? error.join('\n') : error}
+        </div>
+      )}
     </div>
   );
 }
