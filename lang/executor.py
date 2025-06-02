@@ -149,6 +149,55 @@ class Executor(Transformer):
     def MARKER_SHAPE_VALUE(self, value): # value는 이미 "o", "s" 등 문자열
         self._debug_print(f"MARKER_SHAPE_VALUE 규칙: 전달받은 마커 값 '{value}'")
         return value.value
+    
+    @v_args(inline=True)
+    def BEST_POS(self, token): return "best"
+    @v_args(inline=True)
+    def UPPER_RIGHT_POS(self, token): return "upper right"
+    @v_args(inline=True)
+    def UPPER_LEFT_POS(self, token): return "upper left"
+    @v_args(inline=True)
+    def LOWER_LEFT_POS(self, token): return "lower left"
+    @v_args(inline=True)
+    def LOWER_RIGHT_POS(self, token): return "lower right"
+    @v_args(inline=True)
+    def RIGHT_POS(self, token): return "right"
+    @v_args(inline=True)
+    def CENTER_LEFT_POS(self, token): return "center left"
+    @v_args(inline=True)
+    def CENTER_RIGHT_POS(self, token): return "center right"
+    @v_args(inline=True)
+    def LOWER_CENTER_POS(self, token): return "lower center"
+    @v_args(inline=True)
+    def UPPER_CENTER_POS(self, token): return "upper center"
+    @v_args(inline=True)
+    def CENTER_POS(self, token): return "center"
+
+    # LEGEND_POSITION_VALUE는 위 터미널들이 반환한 문자열을 받음
+    @v_args(inline=True)
+    def LEGEND_POSITION_VALUE(self, position_string): # position_string은 "best", "upper right" 등
+        self._debug_print(f"LEGEND_POSITION_VALUE: 받은 값 '{position_string}' (타입: {type(position_string)})")
+        return position_string
+    
+    @v_args(inline=True)
+    def LEGEND_POSITION_VALUE(self, position_string): # position_string은 "best", "upper right" 등
+        self._debug_print(f"LEGEND_POSITION_VALUE: 받은 값 '{position_string}' (타입: {type(position_string)})")
+        return position_string
+
+    # --- 선 스타일 값 처리 (만약 필요하다면) ---
+    @v_args(inline=True)
+    def SOLID_LINE(self, token): return "-"
+    @v_args(inline=True)
+    def DOTTED_LINE(self, token): return ":"
+    @v_args(inline=True)
+    def DASHED_LINE(self, token): return "--"
+    @v_args(inline=True)
+    def DASH_DOT_LINE(self, token): return "-."
+
+    @v_args(inline=True)
+    def LINE_STYLE_VALUE(self, style_string): # style_string은 "-", ":" 등
+        self._debug_print(f"LINE_STYLE_VALUE: 받은 값 '{style_string}' (타입: {type(style_string)})")
+        return style_string
 
     def vector(self, items):
         return items[0]
@@ -283,80 +332,96 @@ class Executor(Transformer):
 
         obj_type_for_msg = "그래프" # 오류 메시지용
 
-        if obj_selector_token: # 객체 선택자가 명시된 경우
+        # 객체 선택자(obj_selector_token) 유무 및 타입에 따라 target_object_dict 설정
+        if obj_selector_token:
             obj_type_lark = obj_selector_token.type
-            obj_type_for_msg = obj_selector_token.value # "마커", "x축" 등
+            obj_type_for_msg = obj_selector_token.value # "마커", "선", "x축", "y축", "그래프"
 
             if obj_type_lark == "GRAPH_KEYWORD":
-                target_object_dict = current_graph_data['옵션'] # 기본
-                if prop_key_type_lark == "SET_TYPE_KEYWORD":
-                    current_graph_data['종류'] = assigned_value
-                    self._debug_print(f"그래프 '{self.graph_name}'의 '종류'를 '{assigned_value}'로 설정.")
-                    return
-                elif prop_key_type_lark == "SET_BACKGROUND_KEYWORD": target_object_dict, target_key_in_dict = current_graph_data['옵션']['출력'], "배경색"
-                elif prop_key_type_lark == "INNER_BACKGROUND_COLOR_KEYWORD": target_object_dict, target_key_in_dict = current_graph_data['옵션']['출력'], "내부 배경색"
-                elif prop_key_type_lark == "SAVE_FILE_KEYWORD": target_object_dict, target_key_in_dict = current_graph_data['옵션']['출력'], "파일로 저장"
-                elif prop_key_type_lark == "RESOLUTION_KEYWORD": target_object_dict, target_key_in_dict = current_graph_data['옵션']['출력'], "해상도"
-                elif prop_key_type_lark == "GRAPH_SIZE_KEYWORD": target_object_dict, target_key_in_dict = current_graph_data['옵션']['출력'], "그래프 크기"
-                elif prop_key_type_lark == "ALPHA_KEYWORD": target_object_dict, target_key_in_dict = current_graph_data['옵션']['출력'], "투명도"
-                else: target_key_in_dict = prop_key_name_script # 옵션 바로 밑 (제목, 글꼴, 범례위치)
-            
+                # '그래프 의 종류 는 ...' 또는 '그래프 의 제목 은 ...'
+                # 이 경우는 obj_selector_token이 없는 경우와 유사하게 처리 (아래에서 통합)
+                pass 
             elif obj_type_lark == "MARKER_KEYWORD":
                 target_object_dict = current_graph_data['옵션']['marker']
                 if prop_key_type_lark == "SET_TYPE_KEYWORD": target_key_in_dict = "문양"
                 elif prop_key_type_lark == "SET_COLOR_KEYWORD": target_key_in_dict = "색"
                 elif prop_key_type_lark == "SIZE_KEYWORD": target_key_in_dict = "크기"
                 elif prop_key_type_lark == "ALPHA_KEYWORD": target_key_in_dict = "투명도"
-                else: target_key_in_dict = prop_key_name_script # 혹시 모를 다른 속성
-            
+                else: target_key_in_dict = prop_key_name_script # 정의되지 않은 다른 속성 대비
             elif obj_type_lark == "LINE_KEYWORD":
                 target_object_dict = current_graph_data['옵션']['line']
                 if prop_key_type_lark == "SET_TYPE_KEYWORD": target_key_in_dict = "종류"
                 elif prop_key_type_lark == "SET_COLOR_KEYWORD": target_key_in_dict = "색"
-                elif prop_key_type_lark in ["SET_THICKNESS_KEYWORD", "WIDTH_KEYWORD"]: target_key_in_dict = "굵기" # 너비도 굵기로 통일
+                elif prop_key_type_lark in ["SET_THICKNESS_KEYWORD", "WIDTH_KEYWORD"]: target_key_in_dict = "굵기"
                 elif prop_key_type_lark == "ALPHA_KEYWORD": target_key_in_dict = "투명도"
                 else: target_key_in_dict = prop_key_name_script
-            
             elif obj_type_lark == "X_AXIS_KEYWORD":
                 target_object_dict = current_graph_data['옵션']['x축']
-                # 이름, 라벨, 색, 글꼴, 크기, 눈금 등은 스크립트 이름과 내부 키 동일 가정
-                target_key_in_dict = prop_key_name_script
-            
+                target_key_in_dict = prop_key_name_script # '이름', '라벨', '색', '글꼴', '크기', '눈금' 등
             elif obj_type_lark == "Y_AXIS_KEYWORD":
                 target_object_dict = current_graph_data['옵션']['y축']
-                target_key_in_dict = prop_key_name_script
-            
-            else: # 처리되지 않은 객체 타입
+                target_key_in_dict = prop_key_name_script # '이름', '라벨', '색', '글꼴', '크기', '눈금' 등
+            else:
                 self._add_error(obj_selector_token, f"내부 오류: 알 수 없는 객체 선택자 타입 '{obj_type_lark}'")
                 return
-        
-        else: # 객체 선택자 없이 바로 속성 지정 (예: 제목은 "값", 종류는 선그래프)
-            obj_type_for_msg = "그래프 (기본객체)"
-            target_object_dict = current_graph_data['옵션'] # 기본은 옵션 바로 아래
-            
+
+# 객체 선택자가 없거나 GRAPH_KEYWORD인 경우 (그래프 전반 옵션)
+        if obj_selector_token is None or (obj_selector_token and obj_selector_token.type == "GRAPH_KEYWORD"):
+            if obj_selector_token and obj_selector_token.type == "GRAPH_KEYWORD":
+                obj_type_for_msg = obj_selector_token.value # "그래프"
+            else: # obj_selector_token is None
+                obj_type_for_msg = "그래프 (기본객체)"
+
+            # 최상위 '종류' 속성 (예: '종류는 선그래프')
             if prop_key_type_lark == "SET_TYPE_KEYWORD":
                 current_graph_data['종류'] = assigned_value
-                self._debug_print(f"그래프 '{self.graph_name}'의 '종류'를 '{assigned_value}'로 설정.")
-                return
-            elif prop_key_type_lark == "SET_BACKGROUND_KEYWORD": target_object_dict, target_key_in_dict = current_graph_data['옵션']['출력'], "배경색"
-            elif prop_key_type_lark == "INNER_BACKGROUND_COLOR_KEYWORD": target_object_dict, target_key_in_dict = current_graph_data['옵션']['출력'], "내부 배경색"
-            elif prop_key_type_lark == "SAVE_FILE_KEYWORD": target_object_dict, target_key_in_dict = current_graph_data['옵션']['출력'], "파일로 저장"
-            elif prop_key_type_lark == "RESOLUTION_KEYWORD": target_object_dict, target_key_in_dict = current_graph_data['옵션']['출력'], "해상도"
-            elif prop_key_type_lark == "GRAPH_SIZE_KEYWORD": target_object_dict, target_key_in_dict = current_graph_data['옵션']['출력'], "그래프 크기"
-            elif prop_key_type_lark == "ALPHA_KEYWORD": target_object_dict, target_key_in_dict = current_graph_data['옵션']['출력'], "투명도"
-            else: # 제목, 글꼴, 범례위치 등은 옵션 바로 아래
-                target_key_in_dict = prop_key_name_script 
+                self._debug_print(f"그래프 '{current_graph_data['이름']}'의 '종류'를 '{assigned_value}'로 설정.")
+                return # 처리가 완료되었으므로 반환
+
+            # 속성 키 타입에 따라 target_object_dict와 target_key_in_dict 결정
+            # 1. '옵션'.'출력' 하위 속성
+            if prop_key_type_lark == "SET_BACKGROUND_KEYWORD":
+                target_object_dict, target_key_in_dict = current_graph_data['옵션']['출력'], "배경색"
+            elif prop_key_type_lark == "INNER_BACKGROUND_COLOR_KEYWORD":
+                target_object_dict, target_key_in_dict = current_graph_data['옵션']['출력'], "내부 배경색"
+            elif prop_key_type_lark == "SAVE_FILE_KEYWORD":
+                target_object_dict, target_key_in_dict = current_graph_data['옵션']['출력'], "파일로 저장"
+            elif prop_key_type_lark == "RESOLUTION_KEYWORD":
+                target_object_dict, target_key_in_dict = current_graph_data['옵션']['출력'], "해상도"
+            elif prop_key_type_lark == "GRAPH_SIZE_KEYWORD":
+                target_object_dict, target_key_in_dict = current_graph_data['옵션']['출력'], "그래프 크기"
+            elif prop_key_type_lark == "ALPHA_KEYWORD": # 그래프 전체 투명도 (배경 등)
+                target_object_dict, target_key_in_dict = current_graph_data['옵션']['출력'], "투명도"
+            # 2. '옵션' 직속 하위 속성
+            #    (위의 '출력' 관련 키워드에 해당하지 않은 경우)
+            elif prop_key_type_lark == "SET_TITLE_KEYWORD":
+                target_object_dict, target_key_in_dict = current_graph_data['옵션'], "제목"
+            elif prop_key_type_lark == "SET_LABEL_KEYWORD": # "라벨"을 나타내는 토큰의 타입 (실제 타입으로 변경)
+                target_object_dict, target_key_in_dict = current_graph_data['옵션'], "label" # 내부 키는 "label"
+            elif prop_key_type_lark == "SET_FONT_KEYWORD": # "글꼴"을 나타내는 토큰의 타입
+                target_object_dict, target_key_in_dict = current_graph_data['옵션'], "글꼴"
+            elif prop_key_type_lark == "SET_LEGEND_KEYWORD": # "범례위치"를 나타내는 토큰의 타입
+                target_object_dict, target_key_in_dict = current_graph_data['옵션'], "범례위치"
+ 
+            # else:
+            #   # 처리되지 않은 prop_key_type_lark는 오류로 간주 (target_key_in_dict가 None으로 유지됨)
+            #   pass
 
         # 최종 값 할당
         if target_object_dict is not None and target_key_in_dict is not None:
+            # target_key_in_dict가 실제로 target_object_dict에 존재하는 키인지 확인 (오타 방지 및 구조 검증)
             if target_key_in_dict in target_object_dict:
+                # 값 타입 변환 로직 추가 가능 (예: "크기" -> int, "투명도" -> float)
+                # 지금은 문자열 그대로 할당
                 target_object_dict[target_key_in_dict] = assigned_value
                 self._debug_print(f"'{obj_type_for_msg}'의 '{target_key_in_dict}' 속성을 '{assigned_value}'로 설정.")
             else:
-                # 이 오류는 SemanticAnalyzer에서 VALIDATION_RULES로 잡히거나, _init_graph_data에 해당 키가 없다면 발생
-                self._add_error(prop_key_token, f"'{obj_type_for_msg}' 객체에 '{target_key_in_dict}' 속성은 내부적으로 정의되지 않았습니다.")
-        else:
-            self._add_error(prop_key_token, f"속성 '{prop_key_name_script}'을(를) '{obj_type_for_msg}' 객체에 설정하는 로직을 찾을 수 없습니다.")
+                # 이 오류는 _init_graph_data에 해당 키가 없거나, 위 로직에서 target_key_in_dict가 잘못 설정된 경우 발생 가능
+                self._add_error(prop_key_token, f"'{obj_type_for_msg}' 객체에 '{target_key_in_dict}' 속성은 내부적으로 정의되지 않았습니다. (스크립트 키: '{prop_key_name_script}')")
+        elif not (prop_key_type_lark == "SET_TYPE_KEYWORD" and (obj_selector_token is None or (obj_selector_token and obj_selector_token.type == "GRAPH_KEYWORD"))):
+            # SET_TYPE_KEYWORD는 위에서 이미 처리하고 return 했으므로, 여기까지 왔다면 다른 문제
+            # target_object_dict 또는 target_key_in_dict가 설정되지 못한 경우
+             self._add_error(prop_key_token, f"속성 '{prop_key_name_script}'을(를) '{obj_type_for_msg}' 객체에 설정하는 로직을 찾을 수 없습니다.")
 
 
     def draw_statement(self, items):

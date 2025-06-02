@@ -18,7 +18,7 @@ script = """
 그래프생성 "기본 설정 테스트"
 종류는 산점도그래프 
 마커의 종류는 ^
-라벨은 "범레임"
+라벨은 "범레123"
 범례는 우상단
 
 데이터는 [[1,2,3,4,5], [5,4,3,2,1]]
@@ -26,13 +26,16 @@ script = """
 제목은 "산점도 기본 테스트" 
 그래프 크기는 [5, 6]  
 x축의 색은 "black"
+x축의 이름은 "엑스축"
+y축의 이름은 "와이"
+x축의 라벨은 "하이"
 그리기
-저장
 
         """
 try:
     parse_tree = parser.parse(script)
     print(parse_tree.pretty())
+
     analyzer = SemanticAnalyzer()
     analyzer.visit(parse_tree)
 
@@ -48,7 +51,14 @@ try:
     executor = Executor(debug_mode=True)
     executor.transform(parse_tree)
 
-    
+    if executor.errors:
+        print("\nRuntime Errors Found:")
+        for error in executor.errors:
+            print(f"- {error}")
+        exit(0)
+    else:
+        print("\nRuntime errors found.")
+
 except UnexpectedToken as err:
     line, column = err.line, err.column
     token_value = err.token.value
