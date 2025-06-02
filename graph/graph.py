@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import matplotlib
+
 matplotlib.rcParams['font.family'] = 'Malgun Gothic'
 matplotlib.rcParams['font.size'] = 12
 matplotlib.rcParams['axes.unicode_minus'] = False

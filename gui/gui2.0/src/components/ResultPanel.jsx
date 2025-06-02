@@ -10,28 +10,22 @@ const panelTitleStyle = {
   fontFamily: "'Fira Mono', 'Consolas', 'Menlo', 'monospace', 'Noto Sans KR', sans-serif",
 };
 
-function ResultPanel({ result, error, loading, log, style }) {
+function ResultPanel(props) {
   return (
-    <div className="flex-panel" style={{ ...style }}>
+    <div className="flex-panel" style={{ ...props.style }}>
       <Card
         title={<span style={panelTitleStyle}>실행 결과</span>}
         style={{ flex: 2, marginBottom: 8 }}
         bodyStyle={{ height: "100%", overflow: "auto", padding: 0 }}
       >
-        {loading ? (
-          <div>로딩중...</div>
-        ) : error ? (
-          <div style={{ color: "red" }}>{Array.isArray(error) ? error.join('\n') : error}</div>
-        ) : (
-          <ResultView result={result} />
-        )}
+        <ResultView />
       </Card>
       <Card
         title={<span style={panelTitleStyle}>로그 / 출력</span>}
         style={{ flex: 1 }}
         bodyStyle={{ height: "100%", overflow: "auto", padding: 0 }}
       >
-        <LogPanel log={log} />
+        <LogPanel />
       </Card>
     </div>
   );

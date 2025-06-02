@@ -8,33 +8,40 @@ import NoRLogo from "../components/NoRLogo";
 import "../App.css";
 import { ThemeContext } from "../components/ThemeContext";
 import { executeCode } from "../services/api";
+import { useNavigate } from "react-router-dom";
 
 const { Header, Content } = Layout;
 
 function Editor() {
+  const navigate = useNavigate();
   const { dark } = useContext(ThemeContext);
   const [code, setCode] = useState("");
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [log, setLog] = useState([]);
 
   // 실행 함수
   const handleExecute = async () => {
     setLoading(true);
     setError(null);
+    setLog([]);
     try {
       const response = await executeCode(code);
       if (response.success) {
         setResult(response.result);
+        setLog([{ source: "parser", type: "success", message: "파싱 성공! 그래프를 그릴 준비가 완료되었습니다." }]);
         message.success("코드가 성공적으로 실행되었습니다.");
       } else {
-        setError(response.errors);
+        setError(Array.isArray(response.errors) ? response.errors.join('\n') : (response.errors || "알 수 없는 오류"));
         setResult(null);
+        setLog([{ source: "compileNorEngine", type: "error", message: Array.isArray(response.errors) ? response.errors.join('\n') : (response.errors || "알 수 없는 오류") }]);
         message.error("코드 실행 중 오류가 발생했습니다.");
       }
     } catch (err) {
       setError(err.message);
       setResult(null);
+      setLog([{ source: "network", type: "error", message: err.message }]);
       message.error("서버 연결 중 오류가 발생했습니다.");
     } finally {
       setLoading(false);
@@ -46,6 +53,7 @@ function Editor() {
     setCode("");
     setResult(null);
     setError(null);
+    setLog([]);
   };
 
   return (
@@ -91,7 +99,9 @@ function Editor() {
           }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: 32 }}>
-            <NoRLogo size={48} />
+            <div onClick={() => navigate("/")} style={{ cursor: "pointer" }}>
+              <NoRLogo size={48} />
+            </div>
             <MenuBar />
           </div>
           <ThemeToggle />
@@ -142,6 +152,7 @@ function Editor() {
               result={result}
               error={error}
               loading={loading}
+              log={log}
               style={{ flex: 1, height: "100%", overflow: "hidden" }}
             />
           </div>

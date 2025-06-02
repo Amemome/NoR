@@ -2,7 +2,6 @@ import React from "react";
 import { Card } from "antd";
 import RunButtons from "./RunButtons";
 import CodeEditor from "./CodeEditor";
-import ErrorHint from "./ErrorHint";
 
 const panelTitleStyle = {
   fontSize: "1.08rem",
@@ -11,7 +10,7 @@ const panelTitleStyle = {
   fontFamily: "'Fira Mono', 'Consolas', 'Menlo', 'monospace', 'Noto Sans KR', sans-serif",
 };
 
-function EditorPanel({ code, setCode, onRun, onClear, isRunning, style }) {
+function EditorPanel({ code, setCode, onRun, onClear, isRunning, error, style }) {
   return (
     <div className="flex-panel" style={{ ...style }}>
       <Card
@@ -21,9 +20,8 @@ function EditorPanel({ code, setCode, onRun, onClear, isRunning, style }) {
       >
         <RunButtons onRun={onRun} onClear={onClear} isRunning={isRunning} />
         <div style={{ flex: 1, overflow: "auto" }}>
-          <CodeEditor value={code} onChange={setCode} />
+          <CodeEditor value={code} onChange={setCode} error={error} />
         </div>
-        <ErrorHint code={code} />
       </Card>
     </div>
   );
