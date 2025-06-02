@@ -1,8 +1,8 @@
 import copy
 from lark import Token, Transformer, Tree, v_args
-from error import RunningError
+from .error import RunningError
 import csv
-from graph.graph import graph
+from .graph.graph import graph
 
 class Executor(Transformer):
     def __init__(self, debug_mode=False, is_server=False):

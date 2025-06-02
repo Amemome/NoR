@@ -1,6 +1,6 @@
 from lark import Visitor, Tree, Token
-from nor_config import VALIDATION_RULES, GRAPH_TYPES, MARKER_SHAPES, LINE_STYLES 
-from error import CompileError
+from .nor_config import VALIDATION_RULES, GRAPH_TYPES, MARKER_SHAPES, LINE_STYLES 
+from .error import CompileError
 
 class SemanticAnalyzer(Visitor):
     def __init__(self):

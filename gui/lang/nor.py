@@ -1,8 +1,8 @@
 from lark import Lark
 from lark.exceptions import LarkError, UnexpectedToken, UnexpectedCharacters, UnexpectedEOF
-from semantic_analyzer import SemanticAnalyzer;
-from executor import Executor;
-from nor_grammar import nor_grammar
+from .semantic_analyzer import SemanticAnalyzer;
+from .executor import Executor;
+from .nor_grammar import nor_grammar
 
 class NoR:
     def __init__(self, debug_mode, server_mode):

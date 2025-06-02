@@ -36,15 +36,12 @@ class graph:
         self.apply_common_decorations(option, 출력옵션)
 
         if 저장:
-            self.save_figure(종류)
+            self.save_figure(command.get('이름'))
         else:
             plt.show()
 
-    def save_figure(self, 종류):
-
-        graph.save_counter[종류] += 1
-        번호 = graph.save_counter[종류]
-        파일명 = f"{종류}_그래프_{번호}.png"
+    def save_figure(self, 그래프이름):
+        파일명 = f"{그래프이름}.png"
         
         # 전체 파일 경로 생성
         full_path = os.path.join(self.output_folder, 파일명)

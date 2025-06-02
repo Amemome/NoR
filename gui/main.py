@@ -1,4 +1,4 @@
-from nor import NoR
+from lang.nor import NoR
 
 gram = """
 // Test 3: 객체 선택자 없는 속성 및 기본값
@@ -16,7 +16,7 @@ x축의 색은 "black"
 x축의 이름은 "엑스축"
 y축의 이름은 "와이"
 x축의 라벨은 "하이"
-그리기
+저장
 """
 
 nor = NoR(debug_mode=True, server_mode=False)
