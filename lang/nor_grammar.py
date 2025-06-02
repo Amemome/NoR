@@ -195,8 +195,8 @@ TRUE: "true" | "True" | "참"
 FALSE: "false" | "False" | "거짓"
 
 // 쌍따옴표 문자열과 따옴표 문자열.
-DQ_STRING: /"[^"\\]*(\\.[^"\\]*)*"/
-SQ_STRING: /'[^'\\]*(\\.[^'\\]*)*'/
+DQ_STRING: /"(\\"|[^"])*?"/
+SQ_STRING: /'(\\'|[^'])*?'/
 
 // ======================================================================
 // Comments and Whitespace (주석 및 공백 처리)
@@ -212,4 +212,5 @@ COMMA: ","
 
 %ignore LINE_COMMENT
 %ignore BLOCK_COMMENT
-%ignore COMMA"""
+%ignore COMMA
+"""
