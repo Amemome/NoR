@@ -189,7 +189,7 @@ function MenuBar() {
   const renderButton = (item) => {
     const handleClick = item.label === "새 창"
       ? () => window.open(window.location.origin + "/editor", "_blank", "noopener,noreferrer")
-      : undefined;
+      : item.onClick;
 
     const button = (
       <Button
@@ -197,7 +197,7 @@ function MenuBar() {
         icon={item.icon}
         size="large"
         style={buttonStyle}
-        onClick={item.onClick}
+        onClick={handleClick}
         onMouseOver={e => {
           e.currentTarget.style.color = dark ? "#38bdf8" : "#1677ff";
           e.currentTarget.style.transform = "scale(1.1)";
