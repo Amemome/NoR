@@ -44,18 +44,14 @@ class Executor(Transformer):
         """현재 그래프 컨텍스트에 있는 데이터들 반환"""
         if self.graph_name and self.graph_name in self.graph_context:
             return self.graph_context[self.graph_name]
-        self._add_error("그래프가 컨텍스트에 없습니다")
         return None
 
-    def _add_error(self, token=None, message="메세지가 없습니다"):
-        line = '?'
-        column = '?'
-        if isinstance(token, Token):
-            line = token.line
-            column = token.column
-        elif hasattr(token, 'line') and hasattr(token, 'column'): # meta 객체인 경우
-            line = token.line
-            column = token.column
+    def _add_error(self, token_or_meta, message="메세지가 없습니다"):
+        line, column = '?', '?'
+        if isinstance(token_or_meta, Token):
+            line, column = token_or_meta.line, token_or_meta.column
+        elif hasattr(token_or_meta, 'line') and hasattr(token_or_meta, 'column'): # meta 객체
+            line, column = token_or_meta.line, token_or_meta.column
 
         err = RunningError(line, column, message)
         self.errors.append(err)
@@ -240,7 +236,7 @@ class Executor(Transformer):
         self._debug_print(f"명령 실행: 그래프생성 \"{graph_name_value}\" (라인: {meta.line})")
 
         if graph_name_value in self.graph_context:
-            self._add_error(meta, f"그래프 이름 '{graph_name_value}'이(가) 이미 사용 중입니다. 다른 이름을 사용해주세요.")
+            self._add_error(meta, f"그래프 이름 '{graph_name_value}'은(는) 이미 사용 중입니다. 다른 이름을 지정해주세요.")
             return
 
         self.graph_context[graph_name_value] = self._init_graph_data(graph_name_value)
@@ -254,16 +250,16 @@ class Executor(Transformer):
         current_graph_data = self._get_current_graph_data_dict()
         
         if not current_graph_data:
-            self._add_error(message="현재 작업중인 그래프가 없습니다")
+            self._add_error(data_keyword_token, "'데이터'를 할당할 그래프가 없습니다. '그래프생성' 명령을 먼저 사용하세요.")
             return
         
         if not current_graph_data.get('종류'):
-            self._add_error(data_keyword_token, f"그래프 '{self.graph_name}'의 '종류'가 정의되지 않아 데이터를 할당할 수 없습니다.")
+            self._add_error(data_keyword_token, f"그래프 '{self.graph_name}'의 '종류'가 정의되지 않아 '데이터'를 할당할 수 없습니다. '종류는 ...' 명령을 먼저 사용하세요.")
             return
         
         data_list = items[2]
         self._debug_print(f"명령 실행: 데이터 할당 for '{self.graph_name}', 데이터: {data_list}")
-        
+
         current_graph_data['x'] = data_list[0]
         current_graph_data['y'] = data_list[1]
 
@@ -285,8 +281,8 @@ class Executor(Transformer):
         current_graph_data = self._get_current_graph_data_dict()
 
         if not current_graph_data:
-            error_token_location = items[0] if items else meta
-            self._add_error(error_token_location, "속성을 할당할 현재 작업 그래프가 없습니다. '그래프생성'을 먼저 실행하세요.")
+            err_token = items[0] if items and isinstance(items[0], Token) else meta
+            self._add_error(err_token, "속성을 할당할 그래프가 없습니다. '그래프생성' 명령을 먼저 사용하세요.")
             return
         
         # --- children 분석하여 객체, 속성 키, 값 추출 ---
@@ -417,44 +413,88 @@ class Executor(Transformer):
                 self._debug_print(f"'{obj_type_for_msg}'의 '{target_key_in_dict}' 속성을 '{assigned_value}'로 설정.")
             else:
                 # 이 오류는 _init_graph_data에 해당 키가 없거나, 위 로직에서 target_key_in_dict가 잘못 설정된 경우 발생 가능
-                self._add_error(prop_key_token, f"'{obj_type_for_msg}' 객체에 '{target_key_in_dict}' 속성은 내부적으로 정의되지 않았습니다. (스크립트 키: '{prop_key_name_script}')")
+
+                self._add_error(prop_key_token, f"[내부 오류] '{obj_type_for_msg}' 객체에 '{target_key_in_dict}' 속성이 정의되지 않았습니다 (스크립트 키: '{prop_key_token.value}').")
         elif not (prop_key_type_lark == "SET_TYPE_KEYWORD" and (obj_selector_token is None or (obj_selector_token and obj_selector_token.type == "GRAPH_KEYWORD"))):
             # SET_TYPE_KEYWORD는 위에서 이미 처리하고 return 했으므로, 여기까지 왔다면 다른 문제
             # target_object_dict 또는 target_key_in_dict가 설정되지 못한 경우
-             self._add_error(prop_key_token, f"속성 '{prop_key_name_script}'을(를) '{obj_type_for_msg}' 객체에 설정하는 로직을 찾을 수 없습니다.")
+             self._add_error(prop_key_token, f"'{obj_type_for_msg}' 객체에 '{prop_key_token.value}' 속성을 설정하는 방법을 알 수 없습니다. 지원되지 않는 속성일 수 있습니다.")
 
 
     def draw_statement(self, items):
+        draw_keyword_token = items[0]
         current_graph_to_draw = self._get_current_graph_data_dict()
-        option = remove_none_values_from_dict(current_graph_to_draw)
-        print(option)
-        if option:
-            self.g.draw(option)
-            pass
-        else:
-            self._add_error("그래프 그릴 수 없는 상황")
 
-    def set_axis_labels_statement(self, items):
-        set_labels_token = items[0]
-        current_graph_data = self._get_current_graph_data_dict()
-        if not current_graph_data:
-            self._add_error(set_labels_token, "축 이름 설정 전 그래프가 먼저 생성되어야 합니다.")
+        if not current_graph_to_draw:
+            self._add_error(draw_keyword_token, "'그리기' 명령을 실행할 그래프가 없습니다. '그래프생성'을 먼저 사용하세요.")
             return
+        if not current_graph_to_draw.get('종류'):
+            self._add_error(draw_keyword_token, f"그래프 '{self.graph_name}'의 '종류'가 정의되지 않아 그릴 수 없습니다.")
+            return
+        if not current_graph_to_draw.get('x') or not current_graph_to_draw.get('y'):
+             self._add_error(draw_keyword_token, f"그래프 '{self.graph_name}'의 '데이터'가 정의되지 않아 그릴 수 없습니다.")
+             return
+
+        option = remove_none_values_from_dict(copy.deepcopy(current_graph_to_draw))
+        self._debug_print(f"그리기 옵션: {option}")
+        try:
+            self.g.draw(option)
+            self._debug_print(f"그래프 '{self.graph_name}' 그리기를 성공적으로 요청했습니다.")
+        except Exception as e:
+            self._add_error(draw_keyword_token, f"그래프 '{self.graph_name}' 그리기에 실패했습니다: {e}")
+
+    @v_args(meta=True)
+    def set_axis_labels_statement(self, items):
+        labels_keyword_token = items[0]
+        current_graph_data = self._get_current_graph_data_dict()
+
+        if not current_graph_data:
+            self._add_error(labels_keyword_token, "'축이름'을 설정할 그래프가 없습니다. '그래프생성'을 먼저 사용하세요.")
+            return
+        
+        # 이 명령은 semantic_analyzer에서 '종류' 정의 후 사용 가능한지 체크하는 것이 좋음
+        if not current_graph_data.get('종류'):
+             self._add_error(labels_keyword_token, f"그래프 '{self.graph_name}'의 '종류'가 정의되지 않아 '축이름'을 설정할 수 없습니다.")
+             return
+
         x_label_val = items[2]
         y_label_val = items[3]
         current_graph_data['옵션']['x축']['이름'] = x_label_val
         current_graph_data['옵션']['y축']['이름'] = y_label_val
+        self._debug_print(f"'{self.graph_name}'의 축 이름 설정: X축='{x_label_val}', Y축='{y_label_val}'")
         
-
+    @v_args(meta=True)
     def save_command(self, items):
-        current_graph_to_draw = self._get_current_graph_data_dict()
-        option = remove_none_values_from_dict(current_graph_to_draw)
-        print(option)
-        if option:
+        save_keyword_token = items[0]
+        filepath = items[1] if len(items) > 1 else None # 파일 경로가 주어졌는지 확인
+
+        current_graph_data = self._get_current_graph_data_dict()
+        if not current_graph_data:
+            self._add_error(save_keyword_token, "'저장' 명령을 실행할 그래프가 없습니다. '그래프생성'을 먼저 사용하세요.")
+            return
+        
+        if not current_graph_data.get('종류'):
+            self._add_error(save_keyword_token, f"그래프 '{self.graph_name}'의 '종류'가 정의되지 않아 저장할 수 없습니다.")
+            return
+        
+        
+        option = remove_none_values_from_dict(copy.deepcopy(current_graph_data))
+        # '파일로 저장' 옵션 업데이트: 명령에서 파일 경로가 주어지면 그것을 사용, 아니면 기존값 유지
+        if filepath:
+            option['옵션']['출력']['파일로 저장'] = filepath
+        elif not option['옵션']['출력'].get('파일로 저장'): # 명령에도 없고, 기존 옵션에도 없으면 기본값 설정 또는 오류
+            default_filename = f"{option.get('이름', '그래프')}.png" # 기본 파일 이름
+            option['옵션']['출력']['파일로 저장'] = default_filename
+            self._debug_print(f"저장 파일 경로가 지정되지 않아 기본값 '{default_filename}'으로 설정합니다.")
+            # self._add_error(save_keyword_token, "저장할 파일 이름/경로가 지정되지 않았습니다. (예: 저장 \"내그래프.png\")")
+            # return
+
+        self._debug_print(f"저장 옵션: {option}")
+        try:
             self.g.save(option)
-            pass
-        else:
-            self._add_error("그래프 저장할 수 없는 상황")
+            self._debug_print(f"그래프 '{self.graph_name}'을(를) '{option['옵션']['출력']['파일로 저장']}' 경로에 성공적으로 저장 요청했습니다.")
+        except Exception as e:
+            self._add_error(save_keyword_token, f"그래프 '{self.graph_name}' 저장에 실패했습니다: {e}")
 
 
 
