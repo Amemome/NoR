@@ -41,9 +41,7 @@ function Editor() {
         setLog(result.log || []);
       } else {
         setResult(result);
-        if (result.log) {
-          setLog(result.log);
-        }
+        setLog(result.log || []);
       }
     } catch (error) {
       console.error('실행 오류:', error); // 디버깅용 로그
