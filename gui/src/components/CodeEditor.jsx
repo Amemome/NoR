@@ -2,18 +2,7 @@ import React, { useContext, useEffect } from "react";
 import { ThemeContext } from "./ThemeContext";
 import Editor from "@monaco-editor/react";
 
-const defaultCode = `그래프생성 "2024년 월별 매출 분석"
-제목은 "2024년 월별 매출 변화 추이"
-x축은 "월"
-y축은 "매출 (단위: 백만원)"
-종류는 "막대"
-색상은 "파랑"
-글꼴은 "나눔고딕"
-굵기는 3
-크기는 800, 600
-범례는 "오른쪽 위"
-저장은 "매출분석.png"
-그리기`;
+const defaultCode = "";
 
 // NoR 언어 문법 정의
 const norLanguageDefinition = {
