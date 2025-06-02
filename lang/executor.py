@@ -413,6 +413,7 @@ class Executor(Transformer):
                 self._debug_print(f"'{obj_type_for_msg}'의 '{target_key_in_dict}' 속성을 '{assigned_value}'로 설정.")
             else:
                 # 이 오류는 _init_graph_data에 해당 키가 없거나, 위 로직에서 target_key_in_dict가 잘못 설정된 경우 발생 가능
+
                 self._add_error(prop_key_token, f"[내부 오류] '{obj_type_for_msg}' 객체에 '{target_key_in_dict}' 속성이 정의되지 않았습니다 (스크립트 키: '{prop_key_token.value}').")
         elif not (prop_key_type_lark == "SET_TYPE_KEYWORD" and (obj_selector_token is None or (obj_selector_token and obj_selector_token.type == "GRAPH_KEYWORD"))):
             # SET_TYPE_KEYWORD는 위에서 이미 처리하고 return 했으므로, 여기까지 왔다면 다른 문제
