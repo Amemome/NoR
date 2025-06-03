@@ -209,8 +209,10 @@ class graph:
         if 'label' in option:
             plot_option['label'] = option['label']
 
-        plot_option.update(self.get_marker_options(option.get('marker'), 'scatter'))
+        marker_specific_options = self.get_marker_options(option.get('marker'), 'scatter')
 
+
+        plot_option.update(marker_specific_options) 
         plt.scatter(x, y, **plot_option)
 
         if 'x축' in option:
@@ -303,5 +305,9 @@ class graph:
         size = marker_option.get('크기')
         if size:
             result['markersize' if plot_type == 'line' else 's'] = size
+
+        alpha = marker_option.get('투명도')
+        if alpha:
+            result['alpha'] = alpha
 
         return result
