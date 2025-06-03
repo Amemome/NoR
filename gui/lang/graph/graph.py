@@ -6,6 +6,54 @@ matplotlib.rcParams['font.family'] = 'Malgun Gothic'
 matplotlib.rcParams['font.size'] = 12
 matplotlib.rcParams['axes.unicode_minus'] = False
 
+legend_position_map = {
+    "최적": "best",
+    "우상단": "upper right",
+    "좌상단": "upper left",
+    "좌하단": "lower left",
+    "우하단": "lower right",
+    "오른쪽": "right",
+    "좌중앙": "center left",
+    "우중앙": "center right",
+    "하중앙": "lower center",
+    "상중앙": "upper center",
+    "중앙": "center"
+}
+
+line_style_map = {
+    "실선": "-",
+    "점선": ":",
+    "파선": "--",
+    "점선파선": "-."
+}
+
+marker_shape_map = {
+    "원": "o",
+
+    "사각형": "s",
+    "네모": "s",
+
+    "점": ".",
+
+    "엑스": "x",
+
+    "삼각형": "^",
+    "세모": "^",
+    "삼각형 위": "^",
+    "위쪽 삼각형": "^",
+
+    "삼각형 아래": "v",
+    "아래쪽 삼각형": "v",
+
+    "삼각형 왼쪽": "<",
+    "왼쪽 삼각형": "<",
+
+    "삼각형 오른쪽": ">",
+    "오른쪽 삼각형": ">",
+
+    "별": "*",
+    "별표": "*"
+}
 class graph:
     save_counter = {'선그래프': 0, '막대그래프': 0, '산점도그래프': 0}
     output_folder = 'static'
@@ -25,6 +73,12 @@ class graph:
             '선그래프': self.draw_line,
             '막대그래프': self.draw_bar,
             '산점도그래프': self.draw_scatter,
+            '선': self.draw_line,
+            '막대': self.draw_bar,
+            '산점도': self.draw_scatter,
+            'line': self.draw_line,
+            'bar': self.draw_bar,
+            'scatter': self.draw_scatter
         }.get(종류)
 
         if draw_func is None:
@@ -67,7 +121,7 @@ class graph:
 
         if 'line' in option:
             line = option['line']
-            plot_option['linestyle'] = line.get('linestyle')
+            plot_option['linestyle'] = line_style_map.get(line.get('linestyle'), line.get('linestyle'))
             plot_option['linewidth'] = line.get('linewidth')
             plot_option['color'] = self.get_color(line.get('color'))
             plot_option['alpha'] = line.get('alpha')
@@ -139,7 +193,7 @@ class graph:
 
     def apply_common_decorations(self, option: dict, 출력옵션: dict):
         if 'label' in option:
-            plt.legend(loc=출력옵션.get('범례 위치', 'best'))
+            plt.legend(loc=legend_position_map.get(출력옵션.get('범례 위치', 'best'), 출력옵션.get('범례 위치', 'best')))
         if '제목' in option:
             plt.title(option['제목'])
         plt.tight_layout()
@@ -201,7 +255,7 @@ class graph:
         if not marker_option:
             return result
 
-        result['marker'] = marker_option.get('문양', 'o')
+        result['marker'] = marker_shape_map.get(marker_option.get('문양', 'o'), marker_option.get('문양', 'o'))
         color = marker_option.get('색')
         if color:
             key = 'markerfacecolor' if plot_type == 'line' else 'facecolors'
