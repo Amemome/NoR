@@ -14,9 +14,12 @@ class SemanticAnalyzer(Visitor):
 
         self.VALIDATION_RULES = VALIDATION_RULES
     
-    def _add_error(self, token, message):
-        line = getattr(token, 'line', '?')
-        column = getattr(token, 'column', '?')
+    def _add_error(self, token_or_meta, message):
+        line, column = '?', '?'
+        if isinstance(token_or_meta, Token):
+            line, column = token_or_meta.line, token_or_meta.column
+        elif hasattr(token_or_meta, 'line') and hasattr(token_or_meta, 'column'): # meta 객체
+            line, column = token_or_meta.line, token_or_meta.column
 
         self.errors.append(CompileError(line, column, message)) 
     

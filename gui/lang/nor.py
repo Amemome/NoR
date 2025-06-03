@@ -3,6 +3,7 @@ from lark.exceptions import LarkError, UnexpectedToken, UnexpectedCharacters, Un
 from .semantic_analyzer import SemanticAnalyzer;
 from .executor import Executor;
 from .nor_grammar import nor_grammar
+from .nor_log import NorLog
 
 class NoR:
     def __init__(self, debug_mode, server_mode):
@@ -10,14 +11,22 @@ class NoR:
         self.debug_mode = debug_mode
         self.server_mode = server_mode
         self.parser = None
+        self.logs = []
         self.script = ""
 
-    def _format_lark_error(self, err_type, err, script_content):
-        """Lark 예외를 일관된 형식의 문자열로 변환합니다."""
+    def _add_nor_log_entry(self, source: str, type: str, message: str, line: int = None, column: int = None):
+        """내부에서 NorLog 객체를 생성하여 중앙 logs 리스트에 추가하는 헬퍼 메서드"""
+        log_entry = NorLog(source, type, message, line, column)
+        self.logs.append(log_entry)
+        if self.debug_mode:
+            print(str(log_entry)) # 콘솔에도 출력
+
+    def _format_lark_error_as_nor_log(self, err_type, err, script_content):
+        """Lark 예외를 NorLog 객체로 변환하여 반환"""
         line, column = getattr(err, 'line', '?'), getattr(err, 'column', '?')
-        message = str(err) # 기본 메시지
+        message = str(err)
         context = ""
-        expected_info = ""
+        # expected_info = "" # 사용하지 않으므로 제거
 
         if hasattr(err, 'get_context'):
             context = err.get_context(script_content, 40)
@@ -27,31 +36,30 @@ class NoR:
             token_value = err.token.value
             token_type = err.token.type
             specific_message = f"문법에 맞지 않는 토큰 '{token_value}' (타입: {token_type}) 발견."
-            if err.expected:
-                expected_info = f"예상된 토큰 타입(일부): {err.expected}"
+            # if err.expected:
+            #     expected_info = f"예상된 토큰 타입(일부): {err.expected}"
         elif isinstance(err, UnexpectedCharacters):
             char_found = err.char
             specific_message = f"예상치 못한 문자 '{char_found}' 발견."
-            if hasattr(err, 'allowed') and err.allowed:
-                expected_info = f"허용되는 문자(일부): {err.allowed}"
-            elif hasattr(err, 'expected') and err.expected: # Lark 버전에 따라 expected도 있을 수 있음
-                expected_info = f"예상된 토큰 타입(일부): {err.expected}"
+            # if hasattr(err, 'allowed') and err.allowed:
+            #     expected_info = f"허용되는 문자(일부): {err.allowed}"
+            # elif hasattr(err, 'expected') and err.expected:
+            #     expected_info = f"예상된 토큰 타입(일부): {err.expected}"
         elif isinstance(err, UnexpectedEOF):
             specific_message = "스크립트가 예기치 않게 종료됨 (명령이 완전하지 않을 수 있음)."
-            if err.expected:
-                expected_info = f"예상된 다음 토큰 타입(일부): {err.expected}"
-        elif isinstance(err, LarkError): # 다른 Lark 관련 오류
+            # if err.expected:
+            #     expected_info = f"예상된 다음 토큰 타입(일부): {err.expected}"
+        elif isinstance(err, LarkError):
             specific_message = f"Lark 문법 처리 오류: {message}"
-            # 이 경우는 line/column이 없을 수 있음
         
-        full_message = f"파스 오류: 컴파일 오류 (행: {line}, 열: {column}): {specific_message}"
+        full_message = f"컴파일 오류 (행: {line}, 열: {column}): {specific_message}"
         if context:
             full_message += f"\n    오류 주변 내용: ...{context}..."
-        if expected_info:
-            full_message += f"\n    참고: {expected_info}"
+        # if expected_info: # 이제 사용하지 않으므로 제거
+        #     full_message += f"\n    참고: {expected_info}"
             
-        return full_message
-
+        return NorLog(source="parser", type="error", message=full_message, line=line, column=column)
+    
     def run(self, script):
         """
         NoR 스크립트를 파싱, 의미 분석, 실행하여 결과를 반환합니다.
@@ -66,90 +74,96 @@ class NoR:
                    - all_errors: 발생한 모든 오류 메시지(문자열)의 리스트.
         """
         parse_tree = None
-        all_errors = []
+        self.logs = []
         execution_result_data = None
+
         # 1. 파서 초기화
         try:
             self.parser = Lark(grammar=self.grammar, propagate_positions=True)
             if self.debug_mode:
                 print("Lark 파서 초기화 완료.")
         except Exception as e:
-            error_message = f"Lark 파서 초기화 오류: {e}\n  문법 정의(nor_grammar.py)에 문제가 없는지 확인하세요."
-            all_errors.append(error_message)
+            self._add_nor_log_entry(source="parser", type="error", message=f"Lark 파서 초기화 오류: {e}\n  문법 정의(nor_grammar.py)에 문제가 없는지 확인하세요.")
             if self.debug_mode:
-                print(error_message)
                 import traceback
                 traceback.print_exc()
-            return execution_result_data, all_errors 
+            return [log.to_dict() for log in self.logs]
         
         # 2. 파싱 (Syntactic Analysis)
         if self.debug_mode:
             print("\n--- 파싱 단계 시작 ---")
+            self._add_nor_log_entry(source="parser", type="info", message="파싱 단계 시작.")
         try:
             parse_tree = self.parser.parse(script)
             if self.debug_mode:
                 print("파싱 성공.")
+                self._add_nor_log_entry(source="parser", type="success", message="파싱 성공. 추상 구문 트리 생성 완료.")
         except UnexpectedToken as e:
-            all_errors.append(self._format_lark_error("UnexpectedToken", e, script))
+            self.logs.append(self._format_lark_error_as_nor_log("UnexpectedToken", e, script))
         except UnexpectedCharacters as e:
-            all_errors.append(self._format_lark_error("UnexpectedCharacters", e, script))
+            self.logs.append(self._format_lark_error_as_nor_log("UnexpectedCharacters", e, script))
         except UnexpectedEOF as e:
-            all_errors.append(self._format_lark_error("UnexpectedEOF", e, script))
+            self.logs.append(self._format_lark_error_as_nor_log("UnexpectedEOF", e, script))
         except LarkError as e:
-            all_errors.append(self._format_lark_error("LarkError", e, script))
+            self.logs.append(self._format_lark_error_as_nor_log("LarkError", e, script))
         except Exception as e:
             line = getattr(e, 'line', '?') 
             col = getattr(e, 'column', '?')
-            all_errors.append(f"파싱 중 예상치 못한 내부 오류 발생: (행: {line}, 열: {col}): 파싱 중 예상치 못한 내부 오류 발생: {e}")
+            self._add_nor_log_entry(source="parser", type="error", message=f"파싱 중 예상치 못한 내부 오류 발생: (행: {line}, 열: {col}): {e}", line=line, column=col)
             if self.debug_mode:
                 import traceback
                 traceback.print_exc()
 
         # 파싱 오류가 있으면 이후 단계 진행하지 않음
-        if all_errors:
-            if self.debug_mode:
-                print(f"\n파싱 오류 {len(all_errors)}개 발견. 의미 분석 및 실행 건너뜀.")
-            return execution_result_data, all_errors 
+        if any(log.type == "error" and log.source == "parser" for log in self.logs):
+                self._add_nor_log_entry(source="system", type="info", message=f"파싱 오류 발견. 의미 분석 및 실행 건너뜀.")
+                return [log.to_dict() for log in self.logs]
         
         # 3. 의미 분석 (Semantic Analysis)
         if self.debug_mode:
             print("\n--- 의미 분석 단계 시작 ---")
+            self._add_nor_log_entry(source="semantic_analyzer", type="info", message="의미 분석 단계 시작.")
+        
         analyzer = SemanticAnalyzer()
         try:
             analyzer.visit(parse_tree)
-            # SemanticAnalyzer가 수집한 오류들을 all_errors에 추가
-            if analyzer.errors: 
-                for err_obj in analyzer.errors: 
-                    all_errors.append(str(err_obj)) # CompileError의 __str__ 사용
+           # SemanticAnalyzer가 수집한 CompileError 객체들을 직접 logs 리스트에 추가
+            if analyzer.errors:
+                self.logs.extend(analyzer.errors) # CompileError 객체는 이미 NorLog를 상속받음
+                self._add_nor_log_entry(source="semantic_analyzer", type="error", message=f"의미 오류 {len(analyzer.errors)}개 발견.")
+            else:
+                self._add_nor_log_entry(source="semantic_analyzer", type="success", message="의미 분석 성공. 의미 오류 없음.")
             
             if self.debug_mode and not analyzer.errors:
                  print("의미 분석 성공. 의미 오류 없음.")
             elif self.debug_mode and analyzer.errors:
                  print(f"의미 오류 {len(analyzer.errors)}개 (SemanticAnalyzer.errors에서) 발견. all_errors에 추가됨.")
         except Exception as e:
-            all_errors.append(f"의미 분석 중 예상치 못한 내부 오류 발생: {e}")
+            self._add_nor_log_entry(source="semantic_analyzer", type="error", message=f"의미 분석 중 예상치 못한 내부 오류 발생: {e}")
             if self.debug_mode:
                 import traceback
                 traceback.print_exc()
-            return execution_result_data, all_errors 
+            return [log.to_dict() for log in self.logs]
 
         # 의미 오류가 있으면 실행 단계로 넘어가지 않음
-        if any("컴파일 에러" in err for err in all_errors):
-            if self.debug_mode:
-                print("\n의미 오류로 인해 실행 건너뜀.")
-            return execution_result_data, all_errors
+        if any(log.type == "error" and log.source == "semantic_analyzer" for log in self.logs):
+            self._add_nor_log_entry(source="system", type="info", message="의미 오류로 인해 실행 건너뜀.")
+            return [log.to_dict() for log in self.logs]
 
         # 4. 실행 (Execution / Code Generation)
         if self.debug_mode:
             print("\n--- 실행 단계 시작 ---")
-        executor = Executor(debug_mode=self.debug_mode)
+            self._add_nor_log_entry(source="executor", type="info", message="실행 단계 시작.")
+        executor = Executor(debug_mode=self.debug_mode, is_server=self.server_mode)
         try:
             execution_result_data = executor.transform(parse_tree)
             
-            # Executor가 수집한 오류들을 all_errors에 추가
-            if executor.errors: 
-                for err_obj in executor.errors:
-                    all_errors.append(str(err_obj)) 
+            # Executor가 수집한 RunningError 객체들을 직접 logs 리스트에 추가
+            if executor.errors:
+                self.logs.extend(executor.errors) # RunningError 객체는 이미 NorLog를 상속받음
+                self._add_nor_log_entry(source="executor", type="error", message=f"런타임 오류 {len(executor.errors)}개 발견.")
+            else:
+                self._add_nor_log_entry(source="executor", type="success", message="실행 성공. 런타임 오류 없음.")
             
             if self.debug_mode and not executor.errors:
                 print("실행 성공. 런타임 오류 없음.")
@@ -157,17 +171,28 @@ class NoR:
                 print(f"런타임 오류 {len(executor.errors)}개 (Executor.errors에서) 발견. all_errors에 추가됨.")
 
         except Exception as e:
-            all_errors.append(f"실행 중 예상치 못한 내부 오류 발생: {e}")
+            line = getattr(e, 'line', '?')
+            col = getattr(e, 'column', '?')
+            self._add_nor_log_entry(source="executor", type="error", message=f"실행 중 예상치 못한 내부 오류 발생: (행: {line}, 열: {col}): {e}", line=line, column=col)
             if self.debug_mode:
                 import traceback
                 traceback.print_exc()
-            return execution_result_data, all_errors 
+            return [log.to_dict() for log in self.logs]
         
-        if self.debug_mode and not all_errors:
-            print("\n--- 모든 단계 성공적으로 완료 ---")
+        # 모든 단계가 오류 없이 완료되었고, 특정 실행 결과(그래프 저장 등)도 있다면 성공 메시지 추가
+        if not any(log.type == "error" for log in self.logs):
+            if execution_result_data:
+                action_msg = ""
+                if execution_result_data.get('action') == 'save':
+                    action_msg = f"'{execution_result_data.get('filename', '그래프')}' 파일 저장 요청 완료."
+                elif execution_result_data.get('action') == 'display':
+                    action_msg = "그래프 화면 표시 요청 완료."
+                self._add_nor_log_entry(source="system", type="success", message=f"모든 단계 성공적으로 완료. {action_msg}")
+            else:
+                self._add_nor_log_entry(source="system", type="success", message="모든 단계 성공적으로 완료. 추가 실행 결과는 없습니다.")
 
-        return execution_result_data, all_errors
-        
+        # 최종 반환 형식: 딕셔너리로 `execution_result`와 `logs`를 포함
+        return [log.to_dict() for log in self.logs]
 
 
 # grammar_file_path = 'nor.lark'

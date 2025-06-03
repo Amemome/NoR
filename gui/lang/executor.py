@@ -54,9 +54,9 @@ class Executor(Transformer):
         elif hasattr(token_or_meta, 'line') and hasattr(token_or_meta, 'column'): # meta 객체
             line, column = token_or_meta.line, token_or_meta.column
 
-        err = RunningError(line, column, message)
-        self.errors.append(err)
-        self._debug_print(f"런타임 오류 추가: {err}")
+        self.errors.append(RunningError(line, column, message))
+        self._debug_print(f"런타임 오류 추가: {RunningError(line, column, message)}")
+        
     # atom
     @v_args(inline=True)
     def atom(self, value): 
