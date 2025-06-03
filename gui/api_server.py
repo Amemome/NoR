@@ -63,6 +63,7 @@ async def execute_code(request: CodeRequest):
     except Exception as e:
         return {
             "success": False,
+            "result": {},
             "log": result
         }
 
