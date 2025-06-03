@@ -15,8 +15,8 @@ function ResultView({ result }) {
     <div style={styles.resultContainer}>
       <div style={styles.graphContainer}>
         <img 
-          src={result.imageUrl}
-          alt={result.title || "그래프"}
+          src={`http://localhost:8000/static/${result.filename}`} 
+          alt={result.title || 그래프}
           style={styles.graph}
         />
       </div>

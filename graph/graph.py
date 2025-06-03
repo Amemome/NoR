@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import matplotlib
+import os
 
 matplotlib.rcParams['font.family'] = 'Malgun Gothic'
 matplotlib.rcParams['font.size'] = 12
@@ -7,6 +8,7 @@ matplotlib.rcParams['axes.unicode_minus'] = False
 
 class graph:
     save_counter = {'선그래프': 0, '막대그래프': 0, '산점도그래프': 0}
+    output_folder = 'static'
 
     def draw(self, command: dict):
         self._plot(command, 저장=False)
@@ -39,11 +41,19 @@ class graph:
             plt.show()
 
     def save_figure(self, 종류):
+
         graph.save_counter[종류] += 1
         번호 = graph.save_counter[종류]
         파일명 = f"{종류}_그래프_{번호}.png"
-        plt.savefig(파일명)
-        print(f"✅ 파일 저장됨: {파일명}")
+        
+        # 전체 파일 경로 생성
+        full_path = os.path.join(self.output_folder, 파일명)
+
+        try:
+            plt.savefig(full_path, bbox_inches='tight') # bbox_inches='tight'는 여백을 최소화
+            print(f"✅ 파일 저장됨: {full_path}")
+        except Exception as e:
+            print(f"❌ 그래프 저장 중 오류 발생: {e}")
 
     def draw_line(self, command: dict):
         x = command.get('x')

@@ -1,17 +1,18 @@
 import copy
 from lark import Token, Transformer, Tree, v_args
-from error import RunningError
+from .error import RunningError
 import csv
-from graph.graph import graph
+from .graph.graph import graph
 
 class Executor(Transformer):
-    def __init__(self, debug_mode=False):
+    def __init__(self, debug_mode=False, is_server=False):
         super().__init__()
         self.graph_name = None # 현재 가리키고 있는 그래프 객체
         self.graph_context = dict()
         self.errors = []
         self.debug_mode = debug_mode # 실행중인 문장을 출력해주는 모드.
         self.g = graph()
+        self.is_server = is_server
 
     def _debug_print(self, message): # <-- 추가: 디버그 출력 헬퍼 메서드
         if self.debug_mode:
@@ -53,9 +54,9 @@ class Executor(Transformer):
         elif hasattr(token_or_meta, 'line') and hasattr(token_or_meta, 'column'): # meta 객체
             line, column = token_or_meta.line, token_or_meta.column
 
-        err = RunningError(line, column, message)
-        self.errors.append(err)
-        self._debug_print(f"런타임 오류 추가: {err}")
+        self.errors.append(RunningError(line, column, message))
+        self._debug_print(f"런타임 오류 추가: {RunningError(line, column, message)}")
+        
     # atom
     @v_args(inline=True)
     def atom(self, value): 
@@ -424,6 +425,17 @@ class Executor(Transformer):
     def draw_statement(self, items):
         draw_keyword_token = items[0]
         current_graph_to_draw = self._get_current_graph_data_dict()
+        option = remove_none_values_from_dict(current_graph_to_draw)
+        print(option)
+        if option:
+            if self.is_server:
+                self.g.save(option)
+            else:
+                self.g.draw(option)
+            
+            pass
+        else:
+            self._add_error("그래프 그릴 수 없는 상황")
 
         if not current_graph_to_draw:
             self._add_error(draw_keyword_token, "'그리기' 명령을 실행할 그래프가 없습니다. '그래프생성'을 먼저 사용하세요.")
@@ -464,9 +476,8 @@ class Executor(Transformer):
         self._debug_print(f"'{self.graph_name}'의 축 이름 설정: X축='{x_label_val}', Y축='{y_label_val}'")
         
     @v_args(meta=True)
-    def save_command(self, items):
+    def save_command(self, meta, items):
         save_keyword_token = items[0]
-        filepath = items[1] if len(items) > 1 else None # 파일 경로가 주어졌는지 확인
 
         current_graph_data = self._get_current_graph_data_dict()
         if not current_graph_data:
@@ -477,22 +488,12 @@ class Executor(Transformer):
             self._add_error(save_keyword_token, f"그래프 '{self.graph_name}'의 '종류'가 정의되지 않아 저장할 수 없습니다.")
             return
         
-        
         option = remove_none_values_from_dict(copy.deepcopy(current_graph_data))
-        # '파일로 저장' 옵션 업데이트: 명령에서 파일 경로가 주어지면 그것을 사용, 아니면 기존값 유지
-        if filepath:
-            option['옵션']['출력']['파일로 저장'] = filepath
-        elif not option['옵션']['출력'].get('파일로 저장'): # 명령에도 없고, 기존 옵션에도 없으면 기본값 설정 또는 오류
-            default_filename = f"{option.get('이름', '그래프')}.png" # 기본 파일 이름
-            option['옵션']['출력']['파일로 저장'] = default_filename
-            self._debug_print(f"저장 파일 경로가 지정되지 않아 기본값 '{default_filename}'으로 설정합니다.")
-            # self._add_error(save_keyword_token, "저장할 파일 이름/경로가 지정되지 않았습니다. (예: 저장 \"내그래프.png\")")
-            # return
 
         self._debug_print(f"저장 옵션: {option}")
         try:
             self.g.save(option)
-            self._debug_print(f"그래프 '{self.graph_name}'을(를) '{option['옵션']['출력']['파일로 저장']}' 경로에 성공적으로 저장 요청했습니다.")
+            self._debug_print(f"그래프 '{self.graph_name}'을(를)  성공적으로 저장 요청했습니다.")
         except Exception as e:
             self._add_error(save_keyword_token, f"그래프 '{self.graph_name}' 저장에 실패했습니다: {e}")
 
