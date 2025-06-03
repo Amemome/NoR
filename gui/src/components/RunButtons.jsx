@@ -29,7 +29,7 @@ const clearBtnStyle = {
 
 function RunButtons({ onRun, onClear, isRunning }) {
   return (
-    <Space style={{ marginBottom: 16 }}>
+    <Space direction="horizontal" align="center" size={16} style={{ marginBottom: 0, marginTop: 4, display: 'flex', alignItems: 'center', gap: 12 }}>
       <Tooltip title={"코드를 초기화합니다"} placement="bottom">
         <Button
           icon={<ReloadOutlined />}

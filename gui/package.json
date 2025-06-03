@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@lottiefiles/react-lottie-player": "^3.6.0",
+    "@monaco-editor/react": "^4.7.0",
     "antd": "^5.25.3",
     "framer-motion": "^12.15.0",
     "react": "^19.1.0",
