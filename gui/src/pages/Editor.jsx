@@ -37,6 +37,7 @@ function Editor() {
     } catch (error) {
       console.error('실행 오류:', error); // 디버깅용 로그
       setError(error.message || '코드 실행 중 오류가 발생했습니다.');
+      setLog(error.log)
     } finally {
       setLoading(false);
     }
