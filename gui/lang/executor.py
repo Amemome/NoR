@@ -476,9 +476,8 @@ class Executor(Transformer):
         self._debug_print(f"'{self.graph_name}'의 축 이름 설정: X축='{x_label_val}', Y축='{y_label_val}'")
         
     @v_args(meta=True)
-    def save_command(self, items):
+    def save_command(self, meta, items):
         save_keyword_token = items[0]
-        filepath = items[1] if len(items) > 1 else None # 파일 경로가 주어졌는지 확인
 
         current_graph_data = self._get_current_graph_data_dict()
         if not current_graph_data:
@@ -489,22 +488,12 @@ class Executor(Transformer):
             self._add_error(save_keyword_token, f"그래프 '{self.graph_name}'의 '종류'가 정의되지 않아 저장할 수 없습니다.")
             return
         
-        
         option = remove_none_values_from_dict(copy.deepcopy(current_graph_data))
-        # '파일로 저장' 옵션 업데이트: 명령에서 파일 경로가 주어지면 그것을 사용, 아니면 기존값 유지
-        if filepath:
-            option['옵션']['출력']['파일로 저장'] = filepath
-        elif not option['옵션']['출력'].get('파일로 저장'): # 명령에도 없고, 기존 옵션에도 없으면 기본값 설정 또는 오류
-            default_filename = f"{option.get('이름', '그래프')}.png" # 기본 파일 이름
-            option['옵션']['출력']['파일로 저장'] = default_filename
-            self._debug_print(f"저장 파일 경로가 지정되지 않아 기본값 '{default_filename}'으로 설정합니다.")
-            # self._add_error(save_keyword_token, "저장할 파일 이름/경로가 지정되지 않았습니다. (예: 저장 \"내그래프.png\")")
-            # return
 
         self._debug_print(f"저장 옵션: {option}")
         try:
             self.g.save(option)
-            self._debug_print(f"그래프 '{self.graph_name}'을(를) '{option['옵션']['출력']['파일로 저장']}' 경로에 성공적으로 저장 요청했습니다.")
+            self._debug_print(f"그래프 '{self.graph_name}'을(를)  성공적으로 저장 요청했습니다.")
         except Exception as e:
             self._add_error(save_keyword_token, f"그래프 '{self.graph_name}' 저장에 실패했습니다: {e}")
 
