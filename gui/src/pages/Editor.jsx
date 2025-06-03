@@ -23,11 +23,6 @@ function Editor() {
 
   // 실행 함수
   const handleExecute = async () => {
-    if (!code.trim()) {
-      message.warning("실행할 코드를 입력해주세요.");
-      return;
-    }
-
     setLoading(true);
     setError(null);
     setLog([]);
@@ -36,13 +31,8 @@ function Editor() {
       const result = await executeCode(code);
       console.log('API 응답:', result); // 디버깅용 로그
       
-      if (result.error) {
-        setError(result.error);
-        setLog(result.log || []);
-      } else {
-        setResult(result);
-        setLog(result.log || []);
-      }
+      setLog(result.log);
+      
     } catch (error) {
       console.error('실행 오류:', error); // 디버깅용 로그
       setError(error.message || '코드 실행 중 오류가 발생했습니다.');

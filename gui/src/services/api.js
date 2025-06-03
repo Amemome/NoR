@@ -31,10 +31,7 @@ export const executeCode = async (code) => {
     }
 
     // 백엔드 응답 형식에 맞게 변환
-    return {
-      ...data.result,
-      imageUrl: `${API_BASE_URL}${data.result.imageUrl}`
-    };
+    return data;
   } catch (error) {
     console.error('API 오류:', error); // 디버깅용 로그
     message.error(error.message);

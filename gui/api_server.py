@@ -46,7 +46,7 @@ async def execute_code(request: CodeRequest):
         result = nor.run(request.code)
 
         filename = "test.png"
-        
+        print(result)
         
         return {
             "success": True,
@@ -57,7 +57,17 @@ async def execute_code(request: CodeRequest):
                 "data": "date",
                 "imageUrl": f"/static/{filename}",
                 "filename": filename
-            }
+            },
+            "log": [  {
+    "source": "compileNorEngine",
+    "type": "error",
+    "message": "명령어 '그려줘 온도 변화'에 오류가 있습니다.",
+  },
+  {
+    "source": "compileNorEngine",
+    "type": "info",
+    "message": "draw() 함수는 한 개의 문자열 인자를 필요로 합니다.",
+  },]
         }
     except Exception as e:
         return {
