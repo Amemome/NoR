@@ -45,34 +45,25 @@ async def execute_code(request: CodeRequest):
 
         result = nor.run(request.code)
 
-        filename = "test.png"
-        print(result)
+        options = nor.get_graph_props()
+        filename = f"{options['이름']}.png"
         
         return {
             "success": True,
             "result": {
-                "title": "ㅎㅇ",
-                "xlabel": "ㅂㅇ",
-                "ylabel": "와이",
-                "data": "date",
+                "title": options['옵션']['제목'],
+                "xlabel": options['옵션']['x축']['이름'],
+                "ylabel": options['옵션']['y축']['이름'],
+                "data": [options['x'], options['y']],
                 "imageUrl": f"/static/{filename}",
                 "filename": filename
             },
-            "log": [  {
-    "source": "compileNorEngine",
-    "type": "error",
-    "message": "명령어 '그려줘 온도 변화'에 오류가 있습니다.",
-  },
-  {
-    "source": "compileNorEngine",
-    "type": "info",
-    "message": "draw() 함수는 한 개의 문자열 인자를 필요로 합니다.",
-  },]
+            "log": result
         }
     except Exception as e:
         return {
             "success": False,
-            "errors": str(e)
+            "log": result
         }
 
 @app.get("/api/download/{filename}")

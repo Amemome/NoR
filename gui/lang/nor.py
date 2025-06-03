@@ -13,6 +13,11 @@ class NoR:
         self.parser = None
         self.logs = []
         self.script = ""
+        self.graph_props = {}
+
+    def get_graph_props(self):
+        return self.graph_props
+    
 
     def _add_nor_log_entry(self, source: str, type: str, message: str, line: int = None, column: int = None):
         """내부에서 NorLog 객체를 생성하여 중앙 logs 리스트에 추가하는 헬퍼 메서드"""
@@ -157,7 +162,7 @@ class NoR:
         executor = Executor(debug_mode=self.debug_mode, is_server=self.server_mode)
         try:
             execution_result_data = executor.transform(parse_tree)
-            
+            self.graph_props = executor.graph_context[executor.graph_name]
             # Executor가 수집한 RunningError 객체들을 직접 logs 리스트에 추가
             if executor.errors:
                 self.logs.extend(executor.errors) # RunningError 객체는 이미 NorLog를 상속받음
