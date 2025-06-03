@@ -66,3 +66,35 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 }
+
+/* Monaco Editor 포커스 파란 outline/테두리 완전 제거 */
+.monaco-editor.monaco-editor-focused {
+  outline: none !important;
+  box-shadow: none !important;
+  border: none !important;
+}
+.monaco-editor .margin {
+  border: none !important;
+}
+.monaco-editor .monaco-editor-background,
+.monaco-editor .view-lines {
+  border: none !important;
+  box-shadow: none !important;
+}
+.monaco-editor .decorationsOverviewRuler {
+  border: none !important;
+}
+
+/* Monaco Editor 모든 파란 outline/border 완전 제거 */
+.monaco-editor.monaco-editor-focused,
+.monaco-editor .monaco-editor-background,
+.monaco-editor .margin,
+.monaco-editor .view-lines,
+.monaco-editor .decorationsOverviewRuler,
+.monaco-editor .inputarea:focus,
+.monaco-editor .overflow-guard,
+.monaco-editor .margin-view-overlays {
+  outline: none !important;
+  border: none !important;
+  box-shadow: none !important;
+}

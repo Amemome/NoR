@@ -428,7 +428,6 @@ class Executor(Transformer):
         draw_keyword_token = items[0]
         current_graph_to_draw = self._get_current_graph_data_dict()
         option = remove_none_values_from_dict(current_graph_to_draw)
-        print(option)
 
         if not current_graph_to_draw:
             self._add_error(draw_keyword_token, "'그리기' 명령을 실행할 그래프가 없습니다. '그래프생성'을 먼저 사용하세요.")

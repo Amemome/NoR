@@ -1,12 +1,12 @@
 import React, { useContext } from "react";
 import { ThemeContext } from "./ThemeContext";
 
-export default function NoRLogo({ size = 200 }) {
+export default function NoRLogo({ size = 400 }) {
   const { dark } = useContext(ThemeContext);
   const bgColor = dark ? "#181c24" : "#fff";
   return (
     <svg width={size * 2.2} height={size * 1.1} viewBox="0 0 180 90">
-      <rect x="0" y="0" width="180" height="90" rx="18" fill={bgColor} />
+      {/* <rect x="0" y="0" width="180" height="90" rx="18" fill={bgColor} /> */}
       <g>
         <text
           x="48"

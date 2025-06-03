@@ -122,9 +122,16 @@ function Editor() {
             justifyContent: "space-between",
           }}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: 32 }}>
-            <div onClick={() => navigate("/")} style={{ cursor: "pointer" }}>
-              <NoRLogo size={48} />
+          <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
+            <div 
+              onClick={() => navigate("/")} 
+              style={{ 
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center"
+              }}
+            >
+              <NoRLogo size={36} />
             </div>
             <MenuBar />
           </div>
