@@ -350,7 +350,7 @@ class Executor(Transformer):
             elif obj_type_lark == "BAR_KEYWORD":
                 target_object_dict = current_graph_data['옵션']['bar']
                 if prop_key_type_lark == "SET_COLOR_KEYWORD": target_key_in_dict = "color"
-                elif prop_key_type_lark in ["SET_THICKNESS_KEYWORD", "WIDTH_KEYWORD"]: target_key_in_dict = "barwidth"
+                elif prop_key_type_lark in ["SET_THICKNESS_KEYWORD", "WIDTH_KEYWORD"]: target_key_in_dict = "width"
                 elif prop_key_type_lark == "ALPHA_KEYWORD": target_key_in_dict = "alpha"
                 else: target_key_in_dict = prop_key_name_script
             elif obj_type_lark == "X_AXIS_KEYWORD":
