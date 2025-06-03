@@ -31,6 +31,7 @@ function Editor() {
       const result = await executeCode(code);
       console.log('API 응답:', result); // 디버깅용 로그
       
+      setResult(result.result);
       setLog(result.log);
       
     } catch (error) {
