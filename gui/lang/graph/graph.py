@@ -132,11 +132,27 @@ class graph:
             self.set_axis(option['x축'], 'x')
         if 'y축' in option:
             self.set_axis(option['y축'], 'y')
-
     def draw_bar(self, command: dict):
-        x = command.get('x')
-        y = command.get('y')
-        x, y = self.resolve_xy(x, y)
+        # ... (이전 코드 생략) ...
+        x_raw, y_raw = self.resolve_xy(command.get('x'), command.get('y'))
+
+        x_is_categorical = all(isinstance(val, str) for val in x_raw) and len(x_raw) > 0
+
+        x_for_plotting = []
+        x_tick_labels = None
+
+        if x_is_categorical:
+            x_tick_labels = x_raw
+            x_for_plotting = list(range(len(x_raw)))
+        else:
+            x_for_plotting = [val for val in x_raw if isinstance(val, (int, float))]
+            x_tick_labels = None
+
+        y_for_plotting = [val for val in y_raw if isinstance(val, (int, float))]
+
+        if not x_for_plotting or not y_for_plotting:
+            print("❌ 그래프를 그릴 유효한 데이터가 부족합니다.")
+            return
 
         option = command.get('옵션', {})
         plot_option = {}
@@ -145,15 +161,38 @@ class graph:
             bar = option['bar']
             plot_option['color'] = self.get_color(bar.get('color'))
             plot_option['alpha'] = bar.get('alpha')
-            plot_option['width'] = bar.get('width')
+
+            # --- 이 부분 수정 ---
+            width_val = bar.get('width')
+            if isinstance(width_val, (int, float)):
+                # 이미 숫자형이라면 그대로 사용
+                plot_option['width'] = width_val
+            elif isinstance(width_val, str):
+                # 문자열이라면 float으로 변환 시도
+                try:
+                    plot_option['width'] = float(width_val)
+                except ValueError:
+                    # 변환 실패 시 경고 출력 및 기본값 사용
+                    print(f"⚠️ 경고: 막대 너비 '{width_val}'이(가) 유효한 숫자가 아닙니다. 기본값 0.8을 사용합니다.")
+                    plot_option['width'] = 0.8 # Matplotlib 기본값
+            else:
+                # None이거나 예상치 못한 다른 타입일 경우 기본값 사용
+                plot_option['width'] = 0.8 # Matplotlib 기본값
+            # --- 수정 끝 ---
 
         if 'label' in option:
             plot_option['label'] = option['label']
 
-        plt.bar(x, y, **plot_option)
+        plt.bar(x_for_plotting, y_for_plotting, **plot_option)
 
         if 'x축' in option:
-            self.set_axis(option['x축'], 'x')
+            x_axis_option_for_set_axis = option['x축'].copy()
+            if x_is_categorical:
+                x_axis_option_for_set_axis['눈금'] = x_tick_labels
+            self.set_axis(x_axis_option_for_set_axis, 'x')
+        elif x_is_categorical:
+            plt.xticks(ticks=x_for_plotting, labels=x_tick_labels)
+
         if 'y축' in option:
             self.set_axis(option['y축'], 'y')
 

@@ -292,7 +292,7 @@ class Executor(Transformer):
         first_child = items[0]
 
         # Case 1: "객체 의 속성 은 값" 또는 특정 객체 전용 규칙 (LINE_KEYWORD ... SET_TYPE_KEYWORD ...)
-        if isinstance(first_child, Token) and first_child.type in ["LINE_KEYWORD", "MARKER_KEYWORD", "GRAPH_KEYWORD", "X_AXIS_KEYWORD", "Y_AXIS_KEYWORD"]:
+        if isinstance(first_child, Token) and first_child.type in ["LINE_KEYWORD", "MARKER_KEYWORD", "BAR_KEYWORD", "GRAPH_KEYWORD", "X_AXIS_KEYWORD", "Y_AXIS_KEYWORD"]:
             obj_selector_token = first_child # object_selector의 결과 또는 규칙의 시작 토큰
             if len(items) >= 5:
                 prop_key_token = items[2]
@@ -345,6 +345,12 @@ class Executor(Transformer):
                 if prop_key_type_lark == "SET_TYPE_KEYWORD": target_key_in_dict = "linestyle"
                 elif prop_key_type_lark == "SET_COLOR_KEYWORD": target_key_in_dict = "color"
                 elif prop_key_type_lark in ["SET_THICKNESS_KEYWORD", "WIDTH_KEYWORD"]: target_key_in_dict = "linewidth"
+                elif prop_key_type_lark == "ALPHA_KEYWORD": target_key_in_dict = "alpha"
+                else: target_key_in_dict = prop_key_name_script
+            elif obj_type_lark == "BAR_KEYWORD":
+                target_object_dict = current_graph_data['옵션']['bar']
+                if prop_key_type_lark == "SET_COLOR_KEYWORD": target_key_in_dict = "color"
+                elif prop_key_type_lark in ["SET_THICKNESS_KEYWORD", "WIDTH_KEYWORD"]: target_key_in_dict = "barwidth"
                 elif prop_key_type_lark == "ALPHA_KEYWORD": target_key_in_dict = "alpha"
                 else: target_key_in_dict = prop_key_name_script
             elif obj_type_lark == "X_AXIS_KEYWORD":
