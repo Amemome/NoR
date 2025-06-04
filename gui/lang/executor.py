@@ -30,14 +30,14 @@ class Executor(Transformer):
                 '제목': name, 
                 'label': None, 
                 '글꼴': None, 
-                '범례위치': None,
                 'marker': {'문양': None, '색': None, '크기': None, '투명도': None},
-                'line': {'종류': None, '색': None, '굵기': None, '너비': None, '투명도': None},
-                'x축': {'이름': None, '라벨': None, '색': None, '글꼴': None, '크기': None, '눈금': None},
-                'y축': {'이름': None, '라벨': None, '색': None, '글꼴': None, '크기': None, '눈금': None},
+                'line': {'linestyle': None, 'color': None, 'linewidth': None, 'alpha': None},
+                'bar': {'color': None, 'alpha': None, 'width': None},
+                'x축': {'이름': None, '정렬': None, '색': None, '글꼴': None, '크기': None, '눈금': None},
+                'y축': {'이름': None, '정렬': None, '색': None, '글꼴': None, '크기': None, '눈금': None},
                 '출력': {
                     '배경색': None, '파일로 저장': None, '해상도': None, 
-                    '그래프 크기': None, '투명도': None, '내부 배경색': None
+                    '그래프 크기': None, '투명도': None, '내부 배경색': None, '범례 위치': None,
                 }
             }
         }
@@ -174,12 +174,7 @@ class Executor(Transformer):
     @v_args(inline=True)
     def LEGEND_POSITION_VALUE(self, position_string): # position_string은 "best", "upper right" 등
         self._debug_print(f"LEGEND_POSITION_VALUE: 받은 값 '{position_string}' (타입: {type(position_string)})")
-        return position_string
-    
-    @v_args(inline=True)
-    def LEGEND_POSITION_VALUE(self, position_string): # position_string은 "best", "upper right" 등
-        self._debug_print(f"LEGEND_POSITION_VALUE: 받은 값 '{position_string}' (타입: {type(position_string)})")
-        return position_string
+        return position_string.value
 
     # --- 선 스타일 값 처리 (만약 필요하다면) ---
     @v_args(inline=True)
@@ -194,7 +189,7 @@ class Executor(Transformer):
     @v_args(inline=True)
     def LINE_STYLE_VALUE(self, style_string): # style_string은 "-", ":" 등
         self._debug_print(f"LINE_STYLE_VALUE: 받은 값 '{style_string}' (타입: {type(style_string)})")
-        return style_string
+        return style_string.value
 
     def vector(self, items):
         return items[0]
@@ -297,7 +292,7 @@ class Executor(Transformer):
         first_child = items[0]
 
         # Case 1: "객체 의 속성 은 값" 또는 특정 객체 전용 규칙 (LINE_KEYWORD ... SET_TYPE_KEYWORD ...)
-        if isinstance(first_child, Token) and first_child.type in ["LINE_KEYWORD", "MARKER_KEYWORD", "GRAPH_KEYWORD", "X_AXIS_KEYWORD", "Y_AXIS_KEYWORD"]:
+        if isinstance(first_child, Token) and first_child.type in ["LINE_KEYWORD", "MARKER_KEYWORD", "BAR_KEYWORD", "GRAPH_KEYWORD", "X_AXIS_KEYWORD", "Y_AXIS_KEYWORD"]:
             obj_selector_token = first_child # object_selector의 결과 또는 규칙의 시작 토큰
             if len(items) >= 5:
                 prop_key_token = items[2]
@@ -347,10 +342,16 @@ class Executor(Transformer):
                 else: target_key_in_dict = prop_key_name_script # 정의되지 않은 다른 속성 대비
             elif obj_type_lark == "LINE_KEYWORD":
                 target_object_dict = current_graph_data['옵션']['line']
-                if prop_key_type_lark == "SET_TYPE_KEYWORD": target_key_in_dict = "종류"
-                elif prop_key_type_lark == "SET_COLOR_KEYWORD": target_key_in_dict = "색"
-                elif prop_key_type_lark in ["SET_THICKNESS_KEYWORD", "WIDTH_KEYWORD"]: target_key_in_dict = "굵기"
-                elif prop_key_type_lark == "ALPHA_KEYWORD": target_key_in_dict = "투명도"
+                if prop_key_type_lark == "SET_TYPE_KEYWORD": target_key_in_dict = "linestyle"
+                elif prop_key_type_lark == "SET_COLOR_KEYWORD": target_key_in_dict = "color"
+                elif prop_key_type_lark in ["SET_THICKNESS_KEYWORD", "WIDTH_KEYWORD"]: target_key_in_dict = "linewidth"
+                elif prop_key_type_lark == "ALPHA_KEYWORD": target_key_in_dict = "alpha"
+                else: target_key_in_dict = prop_key_name_script
+            elif obj_type_lark == "BAR_KEYWORD":
+                target_object_dict = current_graph_data['옵션']['bar']
+                if prop_key_type_lark == "SET_COLOR_KEYWORD": target_key_in_dict = "color"
+                elif prop_key_type_lark in ["SET_THICKNESS_KEYWORD", "WIDTH_KEYWORD"]: target_key_in_dict = "width"
+                elif prop_key_type_lark == "ALPHA_KEYWORD": target_key_in_dict = "alpha"
                 else: target_key_in_dict = prop_key_name_script
             elif obj_type_lark == "X_AXIS_KEYWORD":
                 target_object_dict = current_graph_data['옵션']['x축']
@@ -389,6 +390,8 @@ class Executor(Transformer):
                 target_object_dict, target_key_in_dict = current_graph_data['옵션']['출력'], "그래프 크기"
             elif prop_key_type_lark == "ALPHA_KEYWORD": # 그래프 전체 투명도 (배경 등)
                 target_object_dict, target_key_in_dict = current_graph_data['옵션']['출력'], "투명도"
+            elif prop_key_type_lark == "SET_LEGEND_KEYWORD": # "범례위치"를 나타내는 토큰의 타입
+                target_object_dict, target_key_in_dict = current_graph_data['옵션']['출력'], "범례 위치"
             # 2. '옵션' 직속 하위 속성
             #    (위의 '출력' 관련 키워드에 해당하지 않은 경우)
             elif prop_key_type_lark == "SET_TITLE_KEYWORD":
@@ -397,8 +400,7 @@ class Executor(Transformer):
                 target_object_dict, target_key_in_dict = current_graph_data['옵션'], "label" # 내부 키는 "label"
             elif prop_key_type_lark == "SET_FONT_KEYWORD": # "글꼴"을 나타내는 토큰의 타입
                 target_object_dict, target_key_in_dict = current_graph_data['옵션'], "글꼴"
-            elif prop_key_type_lark == "SET_LEGEND_KEYWORD": # "범례위치"를 나타내는 토큰의 타입
-                target_object_dict, target_key_in_dict = current_graph_data['옵션'], "범례위치"
+
  
             # else:
             #   # 처리되지 않은 prop_key_type_lark는 오류로 간주 (target_key_in_dict가 None으로 유지됨)
@@ -426,16 +428,6 @@ class Executor(Transformer):
         draw_keyword_token = items[0]
         current_graph_to_draw = self._get_current_graph_data_dict()
         option = remove_none_values_from_dict(current_graph_to_draw)
-        print(option)
-        if option:
-            if self.is_server:
-                self.g.save(option)
-            else:
-                self.g.draw(option)
-            
-            pass
-        else:
-            self._add_error("그래프 그릴 수 없는 상황")
 
         if not current_graph_to_draw:
             self._add_error(draw_keyword_token, "'그리기' 명령을 실행할 그래프가 없습니다. '그래프생성'을 먼저 사용하세요.")
@@ -450,7 +442,10 @@ class Executor(Transformer):
         option = remove_none_values_from_dict(copy.deepcopy(current_graph_to_draw))
         self._debug_print(f"그리기 옵션: {option}")
         try:
-            self.g.draw(option)
+            if self.is_server:
+                self.g.save(option)
+            else:
+                self.g.draw(option)
             self._debug_print(f"그래프 '{self.graph_name}' 그리기를 성공적으로 요청했습니다.")
         except Exception as e:
             self._add_error(draw_keyword_token, f"그래프 '{self.graph_name}' 그리기에 실패했습니다: {e}")

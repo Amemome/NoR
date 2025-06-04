@@ -1,8 +1,19 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import DefaultGraphSVG from "./DefaultGraphSVG";
 
 function ResultView({ result }) {
-  if (!result || !result.imageUrl) {
+  const [imgUrl, setImgUrl] = useState('');
+
+  useEffect(() => {
+    if(result && result.filename) {
+      const timestamp = new Date().getTime();
+      const newImageUrl = `http://localhost:8000/static/${result.filename}?v=${timestamp}`
+      setImgUrl(newImageUrl)
+    } else {
+      setImgUrl('')
+    }
+  }, [result])
+  if (!result || !result.filename || !imgUrl) {
     return (
       <div style={styles.container}>
         <DefaultGraphSVG width={240} height={160} />
@@ -15,8 +26,8 @@ function ResultView({ result }) {
     <div style={styles.resultContainer}>
       <div style={styles.graphContainer}>
         <img 
-          src={`http://localhost:8000/static/${result.filename}`} 
-          alt={result.title || 그래프}
+          src={imgUrl} 
+          alt={result.title || "그래프"}
           style={styles.graph}
         />
       </div>

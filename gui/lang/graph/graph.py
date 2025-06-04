@@ -6,6 +6,54 @@ matplotlib.rcParams['font.family'] = 'Malgun Gothic'
 matplotlib.rcParams['font.size'] = 12
 matplotlib.rcParams['axes.unicode_minus'] = False
 
+legend_position_map = {
+    "최적": "best",
+    "우상단": "upper right",
+    "좌상단": "upper left",
+    "좌하단": "lower left",
+    "우하단": "lower right",
+    "오른쪽": "right",
+    "좌중앙": "center left",
+    "우중앙": "center right",
+    "하중앙": "lower center",
+    "상중앙": "upper center",
+    "중앙": "center"
+}
+
+line_style_map = {
+    "실선": "-",
+    "점선": ":",
+    "파선": "--",
+    "점선파선": "-."
+}
+
+marker_shape_map = {
+    "원": "o",
+
+    "사각형": "s",
+    "네모": "s",
+
+    "점": ".",
+
+    "엑스": "x",
+
+    "삼각형": "^",
+    "세모": "^",
+    "삼각형 위": "^",
+    "위쪽 삼각형": "^",
+
+    "삼각형 아래": "v",
+    "아래쪽 삼각형": "v",
+
+    "삼각형 왼쪽": "<",
+    "왼쪽 삼각형": "<",
+
+    "삼각형 오른쪽": ">",
+    "오른쪽 삼각형": ">",
+
+    "별": "*",
+    "별표": "*"
+}
 class graph:
     save_counter = {'선그래프': 0, '막대그래프': 0, '산점도그래프': 0}
     output_folder = 'static'
@@ -25,6 +73,12 @@ class graph:
             '선그래프': self.draw_line,
             '막대그래프': self.draw_bar,
             '산점도그래프': self.draw_scatter,
+            '선': self.draw_line,
+            '막대': self.draw_bar,
+            '산점도': self.draw_scatter,
+            'line': self.draw_line,
+            'bar': self.draw_bar,
+            'scatter': self.draw_scatter
         }.get(종류)
 
         if draw_func is None:
@@ -67,7 +121,7 @@ class graph:
 
         if 'line' in option:
             line = option['line']
-            plot_option['linestyle'] = line.get('linestyle')
+            plot_option['linestyle'] = line_style_map.get(line.get('linestyle'), line.get('linestyle'))
             plot_option['linewidth'] = line.get('linewidth')
             plot_option['color'] = self.get_color(line.get('color'))
             plot_option['alpha'] = line.get('alpha')
@@ -78,11 +132,27 @@ class graph:
             self.set_axis(option['x축'], 'x')
         if 'y축' in option:
             self.set_axis(option['y축'], 'y')
-
     def draw_bar(self, command: dict):
-        x = command.get('x')
-        y = command.get('y')
-        x, y = self.resolve_xy(x, y)
+        # ... (이전 코드 생략) ...
+        x_raw, y_raw = self.resolve_xy(command.get('x'), command.get('y'))
+
+        x_is_categorical = all(isinstance(val, str) for val in x_raw) and len(x_raw) > 0
+
+        x_for_plotting = []
+        x_tick_labels = None
+
+        if x_is_categorical:
+            x_tick_labels = x_raw
+            x_for_plotting = list(range(len(x_raw)))
+        else:
+            x_for_plotting = [val for val in x_raw if isinstance(val, (int, float))]
+            x_tick_labels = None
+
+        y_for_plotting = [val for val in y_raw if isinstance(val, (int, float))]
+
+        if not x_for_plotting or not y_for_plotting:
+            print("❌ 그래프를 그릴 유효한 데이터가 부족합니다.")
+            return
 
         option = command.get('옵션', {})
         plot_option = {}
@@ -91,15 +161,38 @@ class graph:
             bar = option['bar']
             plot_option['color'] = self.get_color(bar.get('color'))
             plot_option['alpha'] = bar.get('alpha')
-            plot_option['width'] = bar.get('width')
+
+            # --- 이 부분 수정 ---
+            width_val = bar.get('width')
+            if isinstance(width_val, (int, float)):
+                # 이미 숫자형이라면 그대로 사용
+                plot_option['width'] = width_val
+            elif isinstance(width_val, str):
+                # 문자열이라면 float으로 변환 시도
+                try:
+                    plot_option['width'] = float(width_val)
+                except ValueError:
+                    # 변환 실패 시 경고 출력 및 기본값 사용
+                    print(f"⚠️ 경고: 막대 너비 '{width_val}'이(가) 유효한 숫자가 아닙니다. 기본값 0.8을 사용합니다.")
+                    plot_option['width'] = 0.8 # Matplotlib 기본값
+            else:
+                # None이거나 예상치 못한 다른 타입일 경우 기본값 사용
+                plot_option['width'] = 0.8 # Matplotlib 기본값
+            # --- 수정 끝 ---
 
         if 'label' in option:
             plot_option['label'] = option['label']
 
-        plt.bar(x, y, **plot_option)
+        plt.bar(x_for_plotting, y_for_plotting, **plot_option)
 
         if 'x축' in option:
-            self.set_axis(option['x축'], 'x')
+            x_axis_option_for_set_axis = option['x축'].copy()
+            if x_is_categorical:
+                x_axis_option_for_set_axis['눈금'] = x_tick_labels
+            self.set_axis(x_axis_option_for_set_axis, 'x')
+        elif x_is_categorical:
+            plt.xticks(ticks=x_for_plotting, labels=x_tick_labels)
+
         if 'y축' in option:
             self.set_axis(option['y축'], 'y')
 
@@ -116,8 +209,10 @@ class graph:
         if 'label' in option:
             plot_option['label'] = option['label']
 
-        plot_option.update(self.get_marker_options(option.get('marker'), 'scatter'))
+        marker_specific_options = self.get_marker_options(option.get('marker'), 'scatter')
 
+
+        plot_option.update(marker_specific_options) 
         plt.scatter(x, y, **plot_option)
 
         if 'x축' in option:
@@ -139,7 +234,7 @@ class graph:
 
     def apply_common_decorations(self, option: dict, 출력옵션: dict):
         if 'label' in option:
-            plt.legend(loc=출력옵션.get('범례 위치', 'best'))
+            plt.legend(loc=legend_position_map.get(출력옵션.get('범례 위치', 'best'), 출력옵션.get('범례 위치', 'best')))
         if '제목' in option:
             plt.title(option['제목'])
         plt.tight_layout()
@@ -201,7 +296,7 @@ class graph:
         if not marker_option:
             return result
 
-        result['marker'] = marker_option.get('문양', 'o')
+        result['marker'] = marker_shape_map.get(marker_option.get('문양', 'o'), marker_option.get('문양', 'o'))
         color = marker_option.get('색')
         if color:
             key = 'markerfacecolor' if plot_type == 'line' else 'facecolors'
@@ -210,5 +305,9 @@ class graph:
         size = marker_option.get('크기')
         if size:
             result['markersize' if plot_type == 'line' else 's'] = size
+
+        alpha = marker_option.get('투명도')
+        if alpha:
+            result['alpha'] = alpha
 
         return result

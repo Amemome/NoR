@@ -2,7 +2,14 @@ import React, { useContext, useEffect } from "react";
 import { ThemeContext } from "./ThemeContext";
 import Editor from "@monaco-editor/react";
 
-const defaultCode = "";
+const defaultCode = `그래프생성 "내 첫 선 그래프"
+종류는 선
+데이터는 [[1, 2, 3, 4, 5], [2, 3, 5, 4, 6]]
+제목은 "간단한 데이터 추이"
+x축의 이름은 "X 값"
+y축의 이름은 "Y 값"
+선의 색은 "blue"
+그리기`;
 
 // NoR 언어 문법 정의
 const norLanguageDefinition = {
@@ -27,6 +34,9 @@ const norLanguageDefinition = {
 
   tokenizer: {
     root: [
+      // 주석 (다른 규칙보다 먼저 와야 함)
+      [/\/\/.*/, 'comment'], // 한 줄 주석
+      [/\/\*/, 'comment', '@comment'], // 블록 주석 시작
       // 복합 키워드 (띄어쓰기 포함)
       [/x축의 이름은|y축의 이름은|그래프 크기는|데이터는/, 'keyword'],
       // 문자열
@@ -47,11 +57,16 @@ const norLanguageDefinition = {
       [/[ \t\r\n]+/, 'white'],
       // 기타
       [/./, 'text']
+    ],
+    comment: [
+      [/[^\/*]+/, 'comment'], // 주석 내용
+      [/\*\//, 'comment', '@pop'], // 블록 주석 끝
+      [/[\/*]/, 'comment'] // 주석 내부에 있는 / 또는 *
     ]
   }
 };
 
-// 자동완성(인텔리센스)용 주요 명령어/속성/값 목록
+// 자동완성(인텔리센스)용 주요 명령어/속성/값 목록  
 const norCompletions = [
   '그래프생성', '제목은', 'x축의 이름은', 'y축의 이름은', '종류는', '색상은', '글꼴은', '굵기는', '그래프 크기는', '범례는', '저장하기', '그리기', '데이터는',
   '막대그래프', '선그래프', '산점도그래프', '막대', '선', '산점도',

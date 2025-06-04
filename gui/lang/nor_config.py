@@ -18,10 +18,11 @@ COLOR_VALUES = {
 "노랑", "yellow",
 }
 
-# MARKER_SHAPE_VALUE (grammar has more specific terminals like CIRCLE_MARKER)
-# This set is for general reference or if a generic string is ever parsed.
 MARKER_SHAPES = {
-    "원", "o", "사각형", "네모", "s", "점", ".", "엑스", "x", "십자가",
+    "원", "o", 
+    "사각형", "네모", "s",
+    "점", ".", 
+    "엑스", "x",
     "삼각형", "세모", "^", "삼각형 위", "위쪽 삼각형",
     "삼각형 아래", "아래쪽 삼각형", "v",
     "삼각형 왼쪽", "왼쪽 삼각형", "<",
@@ -101,6 +102,11 @@ VALIDATION_RULES = {
         "SET_TYPE_KEYWORD": LINE_STYLES, # Validated by LINE_STYLE_VALUE
         "SET_COLOR_KEYWORD": COLOR_VALUES, # Validated by COLOR_VALUE
         "SET_THICKNESS_KEYWORD": None,  # Validated as NUMBER
+        "WIDTH_KEYWORD": None,          # (Synonym for thickness) Validated as NUMBER
+        "ALPHA_KEYWORD": None,          # Validated as NUMBER
+    },
+    "BAR_KEYWORD": {
+        "SET_COLOR_KEYWORD": COLOR_VALUES, # Validated by COLOR_VALUE
         "WIDTH_KEYWORD": None,          # (Synonym for thickness) Validated as NUMBER
         "ALPHA_KEYWORD": None,          # Validated as NUMBER
     }

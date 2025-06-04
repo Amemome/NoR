@@ -48,7 +48,8 @@ object_selector: GRAPH_KEYWORD     // "그래프의 배경색은 ..."
                | X_AXIS_KEYWORD    // "x축의 색은 ..."
                | Y_AXIS_KEYWORD    // "y축의 굵기는 ..."
                | MARKER_KEYWORD    // "마커의 종류는 ..."
-               | LINE_KEYWORD      // "선의 스타일은 ..."
+               | LINE_KEYWORD      // "선의 종류는 ..."
+               | BAR_KEYWORD       // "막대의 종류는 ..."
 
 // io 관련된 문장
 io_statement: load_command 
@@ -97,6 +98,7 @@ DRAW_KEYWORD: "그리기" | "draw" | "그려줘"
 // --- Selector Keywords (선택자 키워드) ---
 MARKER_KEYWORD: "마커" 
 LINE_KEYWORD: "선"
+BAR_KEYWORD: "막대"
 GRAPH_KEYWORD: "그래프" // 굳이 안 써도 되지만 명시적으로 하고 싶으면 써도 됨.
 X_AXIS_KEYWORD: "x축" | "엑스축" | "xaxis" // X축은 "엑스축"
 Y_AXIS_KEYWORD: "y축" | "와이축" | "ylabel" // Y축은 "와이축"

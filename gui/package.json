@@ -8,13 +8,14 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "prepare": "cross-env NODE_ENV=development npm install"
+    "prepare": "cross-env NODE_ENV=development"
   },
   "dependencies": {
     "@lottiefiles/react-lottie-player": "^3.6.0",
     "@monaco-editor/react": "^4.7.0",
     "antd": "^5.25.3",
     "framer-motion": "^12.15.0",
+    "gui2.0": "file:",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-router-dom": "^7.6.1",
