@@ -59,8 +59,10 @@ npm run dev
 루트 디렉토리에서
 
 ```bash
-python -m cli.nor_cli <script_file>
+python -m cli.nor_cli <script_file> --debug
 ```
+
+debug 옵션은 더 많은 정보를 로그에 제공합니다.
 
 예시:
 
