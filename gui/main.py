@@ -1,15 +1,12 @@
 from lang.nor import NoR
 
 gram = """
+그리기
 그래프생성 "막대 그래프 테스트"
 종류는 막대
 
-라벨은 "식사량"
-범례는 center
-
 데이터는 [
-["가","나","다","라","마"],
-[1,2,3,4,5]
+[1,2,3,4,5,'ㅇ']
 ]
 
 제목은 "막대 기본 테스트" 
@@ -25,4 +22,7 @@ nor = NoR(debug_mode=True, server_mode=False)
 
 result = nor.run(gram)
 
-print(result)
+print(len(result))
+
+for err in result:
+    print(str(err))

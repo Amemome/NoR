@@ -92,7 +92,7 @@ class NoR:
             if self.debug_mode:
                 import traceback
                 traceback.print_exc()
-            return [log.to_dict() for log in self.logs]
+            return [log.to_dict() if self.server_mode else str(log) for log in self.logs]
         
         # 2. 파싱 (Syntactic Analysis)
         if self.debug_mode:
@@ -122,7 +122,7 @@ class NoR:
         # 파싱 오류가 있으면 이후 단계 진행하지 않음
         if any(log.type == "error" and log.source == "parser" for log in self.logs):
                 self._add_nor_log_entry(source="system", type="info", message=f"파싱 오류 발견. 의미 분석 및 실행 건너뜀.")
-                return [log.to_dict() for log in self.logs]
+                return [log.to_dict() if self.server_mode else str(log) for log in self.logs]
         
         # 3. 의미 분석 (Semantic Analysis)
         if self.debug_mode:
@@ -148,12 +148,12 @@ class NoR:
             if self.debug_mode:
                 import traceback
                 traceback.print_exc()
-            return [log.to_dict() for log in self.logs]
+            return [log.to_dict() if self.server_mode else str(log) for log in self.logs]
 
         # 의미 오류가 있으면 실행 단계로 넘어가지 않음
         if any(log.type == "error" and log.source == "semantic_analyzer" for log in self.logs):
             self._add_nor_log_entry(source="system", type="info", message="의미 오류로 인해 실행 건너뜀.")
-            return [log.to_dict() for log in self.logs]
+            return [log.to_dict() if self.server_mode else str(log) for log in self.logs]
 
         # 4. 실행 (Execution / Code Generation)
         if self.debug_mode:
@@ -182,7 +182,7 @@ class NoR:
             if self.debug_mode:
                 import traceback
                 traceback.print_exc()
-            return [log.to_dict() for log in self.logs]
+            return [log.to_dict() if self.server_mode else str(log) for log in self.logs]
         
         # 모든 단계가 오류 없이 완료되었고, 특정 실행 결과(그래프 저장 등)도 있다면 성공 메시지 추가
         if not any(log.type == "error" for log in self.logs):
@@ -197,7 +197,7 @@ class NoR:
                 self._add_nor_log_entry(source="system", type="success", message="모든 단계 성공적으로 완료. 추가 실행 결과는 없습니다.")
 
         # 최종 반환 형식: 딕셔너리로 `execution_result`와 `logs`를 포함
-        return [log.to_dict() for log in self.logs]
+        return [log.to_dict() if self.server_mode else str(log) for log in self.logs]
 
 
 # grammar_file_path = 'nor.lark'
