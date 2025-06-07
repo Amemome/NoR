@@ -174,13 +174,12 @@ function About() {
           <div style={styles.techStack}>
             {[
               "Python",
-              "Lark (파서/인터프리터)",
+              "Lark",
               "Matplotlib",
-              "Seaborn",
               "React",
               "Monaco Editor",
               "Ant Design",
-              "Express (API 서버)"
+              "FastAPI"
             ].map((tech, i) => (
               <motion.div
                 key={tech}
@@ -210,8 +209,8 @@ function About() {
         >
           <h2 style={styles.cardTitle}>오픈소스 프로젝트</h2>
           <p style={styles.cardText}>
-            NoR은 matplotlib, seaborn, Lark, React, Monaco Editor 등 자유로운 라이선스를 가진 오픈소스 라이브러리를 기반으로 개발되었습니다.<br/>
-            누구나 자유롭게 사용, 수정, 배포할 수 있습니다.
+            NoR은 matplotlib, Lark, React, Monaco Editor 등 자유로운 라이선스를 가진 오픈소스 라이브러리를 기반으로 개발되었습니다.<br/>
+            누구나 자유롭게 사용, 수정, 배포할 수 있습니다. 프로젝트에 관한 어느 기여든 환영합니다!
           </p>
           <motion.a
             href="https://github.com/Amemome/NoR"

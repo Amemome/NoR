@@ -1,6 +1,3 @@
-from lang.nor import NoR
-
-gram = """
 그리기
 그래프생성 "막대 그래프 테스트"
 종류는 막대
@@ -16,13 +13,3 @@ gram = """
 배경은 "노랑"
 내부 배경색은 "파랑"
 그리기
-"""
-
-nor = NoR(debug_mode=True, server_mode=False)
-
-result = nor.run(gram)
-
-print(len(result))
-
-for err in result:
-    print(str(err))
